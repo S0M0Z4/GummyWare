@@ -1,13 +1,3 @@
-/* =========================================================
-   GUMMYWARE
-   Compila tu Antojo
-========================================================= */
-
-
-/* =========================================================
-   DATOS INICIALES
-========================================================= */
-
 const INITIAL = {
   settings: {
     profitGoal: 1450,
@@ -18,54 +8,12 @@ const INITIAL = {
   },
 
   inventory: [
-    {
-      id: "bolsitas",
-      name: "Bolsitas",
-      quantity: 0,
-      unit: "unidades",
-      avgCost: 0,
-      lowThreshold: 20
-    },
-    {
-      id: "gomitas",
-      name: "Gomitas",
-      quantity: 0,
-      unit: "kg",
-      avgCost: 0,
-      lowThreshold: 0.5
-    },
-    {
-      id: "gusanos",
-      name: "Gusanos",
-      quantity: 0,
-      unit: "kg",
-      avgCost: 0,
-      lowThreshold: 0.5
-    },
-    {
-      id: "panditas",
-      name: "Panditas",
-      quantity: 0,
-      unit: "kg",
-      avgCost: 0,
-      lowThreshold: 0.5
-    },
-    {
-      id: "chamoy",
-      name: "Chamoy",
-      quantity: 0,
-      unit: "ml",
-      avgCost: 0,
-      lowThreshold: 100
-    },
-    {
-      id: "miguelito",
-      name: "Miguelito",
-      quantity: 0,
-      unit: "g",
-      avgCost: 0,
-      lowThreshold: 50
-    }
+    {id:"bolsitas",name:"Bolsitas",quantity:0,unit:"unidades",avgCost:0,lowThreshold:20},
+    {id:"gomitas",name:"Gomitas",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
+    {id:"gusanos",name:"Gusanos",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
+    {id:"panditas",name:"Panditas",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
+    {id:"chamoy",name:"Chamoy",quantity:0,unit:"ml",avgCost:0,lowThreshold:100},
+    {id:"miguelito",name:"Miguelito",quantity:0,unit:"g",avgCost:0,lowThreshold:50}
   ],
 
   sales: [],
@@ -73,276 +21,137 @@ const INITIAL = {
   transactions: []
 };
 
-
-/* =========================================================
-   ESTADO
-========================================================= */
-
 let state = load();
-
 let screen = "home";
 
 const root = document.querySelector("#root");
 
-
-/* =========================================================
-   UTILIDADES
-========================================================= */
-
-const fmt = (n) =>
-  "$" +
-  (Number(n) || 0).toLocaleString("es-MX", {
+const fmt = n =>
+  "$" + (Number(n) || 0).toLocaleString("es-MX", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
   });
 
-
-const qty = (n, u) =>
-  `${Number(n) % 1 === 0 ? Number(n) : Number(n).toFixed(2)} ${u}`;
-
+const qty = (n,u) =>
+  `${Number(n)%1===0 ? Number(n) : Number(n).toFixed(2)} ${u}`;
 
 const uid = () =>
-  Date.now().toString(36) +
-  Math.random().toString(36).slice(2);
+  Date.now().toString(36) + Math.random().toString(36).slice(2);
 
-
-/* =========================================================
-   CARGAR DATOS
-========================================================= */
-
-function load() {
-
-  try {
-
+function load(){
+  try{
     const x = localStorage.getItem("gummyware_v1");
-
-    return x
-      ? JSON.parse(x)
-      : structuredClone(INITIAL);
-
-  } catch {
-
+    return x ? JSON.parse(x) : structuredClone(INITIAL);
+  }catch{
     return structuredClone(INITIAL);
-
   }
-
 }
 
-
-/* =========================================================
-   GUARDAR DATOS
-========================================================= */
-
-function save() {
-
-  localStorage.setItem(
-    "gummyware_v1",
-    JSON.stringify(state)
-  );
-
+function save(){
+  localStorage.setItem("gummyware_v1", JSON.stringify(state));
 }
 
-
-/* =========================================================
-   ESTADÍSTICAS
-========================================================= */
-
-function stats() {
-
-  const sales =
-    state.sales.reduce(
-      (a, x) => a + Number(x.total || 0),
-      0
-    );
-
-  const purchases =
-    state.purchases.reduce(
-      (a, x) => a + Number(x.cost || 0),
-      0
-    );
-
-  const profit =
-    state.sales.reduce(
-      (a, x) => a + Number(x.profit || 0),
-      0
-    );
+function stats(){
+  const sales = state.sales.reduce((a,x)=>a + Number(x.total || 0),0);
+  const purchases = state.purchases.reduce((a,x)=>a + Number(x.cost || 0),0);
+  const profit = state.sales.reduce((a,x)=>a + Number(x.profit || 0),0);
 
   return {
-
-    totalSales: sales,
-
-    totalPurchases: purchases,
-
-    totalProfit: profit,
-
-    availableMoney: sales - purchases,
-
-    goalProgress:
-      state.settings.profitGoal
-        ? Math.min(
-            profit / state.settings.profitGoal,
-            1
-          )
-        : 0,
-
+    totalSales:sales,
+    totalPurchases:purchases,
+    totalProfit:profit,
+    availableMoney:sales-purchases,
+    goalProgress:state.settings.profitGoal
+      ? Math.min(profit/state.settings.profitGoal,1)
+      : 0,
     restockReserve:
-      state.sales.reduce(
-        (a, x) => a + Number(x.forRestock || 0),
-        0
-      ) - purchases
-
+      state.sales.reduce((a,x)=>a + Number(x.forRestock || 0),0)-purchases
   };
+}
 
+function moneyIcon(type){
+  return type === "sale" ? "↗" : "↙";
 }
 
 
-/* =========================================================
-   ICONO MOVIMIENTO
-========================================================= */
-
-function moneyIcon(type) {
-
-  return type === "sale"
-    ? "↗"
-    : "↙";
-
-}
-
-
-/* =========================================================
+/* =========================
    NAVEGACIÓN
-========================================================= */
+========================= */
 
-function nav() {
+function nav(){
 
   return `
-    <nav class="bottom-nav">
+  <nav class="bottom-nav">
 
-      <button
-        class="nav-item ${screen === "home" ? "active" : ""}"
-        onclick="go('home')"
-      >
-        ⌂
-        <span>Inicio</span>
-      </button>
+    <button class="nav-item ${screen==="home"?"active":""}"
+      onclick="go('home')">
+      <span class="nav-symbol">⌂</span>
+      <span>Inicio</span>
+    </button>
 
-      <button
-        class="nav-item ${
-          screen === "history" ||
-          screen === "new-sale"
-            ? "active"
-            : ""
-        }"
-        onclick="go('history')"
-      >
-        ↗
-        <span>Ventas</span>
-      </button>
+    <button class="nav-item ${screen==="history"||screen==="new-sale"?"active":""}"
+      onclick="go('history')">
+      <span class="nav-symbol">↗</span>
+      <span>Ventas</span>
+    </button>
 
-      <div class="fab-wrap">
+    <div class="fab-wrap">
+      <button class="fab" onclick="go('new-sale')">＋</button>
+    </div>
 
-        <button
-          class="fab"
-          onclick="go('new-sale')"
-          aria-label="Nueva venta"
-        >
-          ＋
-        </button>
+    <button class="nav-item ${screen==="calculator"?"active":""}"
+      onclick="go('calculator')">
+      <span class="nav-symbol">▣</span>
+      <span>Calc</span>
+    </button>
 
-      </div>
+    <button class="nav-item ${["settings","distribution","inventory","new-purchase"].includes(screen)?"active":""}"
+      onclick="go('settings')">
+      <span class="nav-symbol">☰</span>
+      <span>Más</span>
+    </button>
 
-      <button
-        class="nav-item ${
-          screen === "calculator"
-            ? "active"
-            : ""
-        }"
-        onclick="go('calculator')"
-      >
-        ▣
-        <span>Calc</span>
-      </button>
-
-      <button
-        class="nav-item ${
-          ["settings", "distribution"].includes(screen)
-            ? "active"
-            : ""
-        }"
-        onclick="go('settings')"
-      >
-        ☰
-        <span>Más</span>
-      </button>
-
-    </nav>
-  `;
-
+  </nav>`;
 }
 
-
-/* =========================================================
-   SHELL
-========================================================= */
-
-function shell(content) {
+function shell(content){
 
   root.innerHTML = `
     <div class="app-shell">
 
-      <div class="screen-content">
+      <main class="screen-content">
         ${content}
-      </div>
+      </main>
 
       ${nav()}
 
     </div>
   `;
-
 }
 
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-function header(t, s, back = false) {
+function header(t,s,back=false){
 
   return `
     <header class="header">
 
-      ${
-        back
-          ? `
-            <button
-              class="ghost"
-              onclick="go('home')"
-            >
-              ‹ Volver
-            </button>
-          `
-          : ""
-      }
+      ${back
+        ? `<button class="ghost back-button" onclick="go('home')">‹ Volver</button>`
+        : ""}
 
       <h1>${t}</h1>
 
-      ${
-        s
-          ? `<p>${s}</p>`
-          : ""
-      }
+      ${s ? `<p>${s}</p>` : ""}
 
     </header>
   `;
-
 }
 
 
-/* =========================================================
+/* =========================
    INICIO
-========================================================= */
+========================= */
 
-function home() {
+function home(){
 
   const s = stats();
 
@@ -352,284 +161,171 @@ function home() {
 
   return `
 
-    ${header(
-      "Gummy Ware",
-      "Tu antojo, bajo control."
-    )}
+  ${header("Gummy Ware","Tu antojo, bajo control.")}
 
-    <div class="px">
+  <div class="px">
 
-      <div class="card">
+    <div class="card">
 
-        <div class="row">
+      <div class="row">
 
-          <div>
+        <div>
+          <div class="stat-label">Meta de ganancia</div>
 
-            <div class="stat-label">
-              Meta de ganancia
-            </div>
-
-            <div
-              style="
-                font-size:28px;
-                font-weight:900;
-                margin-top:7px
-              "
-            >
-              ${fmt(state.settings.profitGoal)}
-            </div>
-
+          <div class="stat-big">
+            ${fmt(state.settings.profitGoal)}
           </div>
-
-          <button
-            class="secondary"
-            onclick="goalModal()"
-          >
-            Editar
-          </button>
-
         </div>
 
-
-        ${
-          reached
-            ? `
-              <div
-                style="
-                  margin-top:16px;
-                  background:#FFF0F3;
-                  border-radius:16px;
-                  padding:13px;
-                  color:#FF758F;
-                  font-weight:900;
-                  text-align:center
-                "
-              >
-                ¡Meta alcanzada! 🎊
-
-                <br>
-
-                <span
-                  style="
-                    font-size:13px;
-                    color:var(--text)
-                  "
-                >
-                  Ganancia:
-                  ${fmt(s.totalProfit)}
-                </span>
-
-              </div>
-            `
-            : `
-              <div style="margin-top:16px">
-
-                <div class="progress">
-
-                  <div
-                    style="
-                      width:${s.goalProgress * 100}%
-                    "
-                  ></div>
-
-                </div>
-
-                <div
-                  class="row small muted"
-                  style="margin-top:7px"
-                >
-                  <span>
-                    Ganancia actual
-                  </span>
-
-                  <b>
-                    ${fmt(s.totalProfit)}
-                  </b>
-
-                </div>
-
-              </div>
-            `
-        }
+        <button class="secondary" onclick="goalModal()">
+          Editar
+        </button>
 
       </div>
-
-
-      <div class="grid2">
-
-        <div class="card">
-
-          <div class="stat-label">
-            Ventas
-          </div>
-
-          <div class="stat-value">
-            ${fmt(s.totalSales)}
-          </div>
-
-          <div
-            class="small muted"
-            style="margin-top:6px"
-          >
-            ${state.sales.length} ventas
-          </div>
-
-        </div>
-
-
-        <div class="card">
-
-          <div class="stat-label">
-            Ganancia neta
-          </div>
-
-          <div
-            class="stat-value"
-            style="
-              color:
-                ${
-                  s.totalProfit < 0
-                    ? "var(--red)"
-                    : "var(--green)"
-                }
-            "
-          >
-            ${fmt(s.totalProfit)}
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="card">
-
-        <div class="stat-label">
-          Disponible
-        </div>
-
-        <div class="stat-value">
-          ${fmt(s.availableMoney)}
-        </div>
-
-      </div>
-
 
       ${
-        state.transactions.length
+        reached
 
-          ? `
+        ? `
+          <div class="goal-reached">
+            ¡Meta alcanzada! 🎊
 
-            <div
-              class="section-head"
-              style="
-                padding-left:0;
-                padding-right:0
-              "
-            >
+            <br>
 
-              <h2>
-                Reciente
-              </h2>
+            <span>
+              Ganancia: ${fmt(s.totalProfit)}
+            </span>
+          </div>
+        `
 
-              <button
-                onclick="go('history')"
-              >
-                Ver todo
-              </button>
+        : `
+          <div class="goal-area">
 
+            <div class="progress">
+              <div style="width:${s.goalProgress*100}%"></div>
             </div>
 
-
-            ${state.transactions
-              .slice(0, 5)
-              .map(
-                (tx) => `
-
-                  <div
-                    class="list-item"
-                    style="margin:0 -20px"
-                  >
-
-                    <div class="list-icon">
-                      ${moneyIcon(tx.type)}
-                    </div>
-
-                    <div style="flex:1">
-
-                      <b>
-                        ${tx.description}
-                      </b>
-
-                      <div class="small muted">
-
-                        ${new Date(
-                          tx.date
-                        ).toLocaleDateString(
-                          "es-MX",
-                          {
-                            day: "numeric",
-                            month: "short"
-                          }
-                        )}
-
-                      </div>
-
-                    </div>
-
-                    <b
-                      style="
-                        color:
-                          ${
-                            tx.amount >= 0
-                              ? "var(--green)"
-                              : "var(--red)"
-                          }
-                      "
-                    >
-                      ${
-                        tx.amount >= 0
-                          ? "+"
-                          : ""
-                      }${fmt(tx.amount)}
-                    </b>
-
-                  </div>
-
-                `
-              )
-              .join("")}
-
-          `
-
-          : `
-
-            <div
-              class="card"
-              style="text-align:center"
-            >
-
-              <div style="font-size:34px">
-                🍬
-              </div>
-
-              <b>
-                ¡Bienvenida a Gummy Ware!
-              </b>
-
-              <p class="muted small">
-                Registra tu primera venta
-                o compra para comenzar.
-              </p>
-
+            <div class="row small muted">
+              <span>Ganancia actual</span>
+              <b>${fmt(s.totalProfit)}</b>
             </div>
 
-          `
+          </div>
+        `
       }
 
+    </div>
 
-      <div style="height:14px"></div>
 
+    <div class="grid2">
+
+      <div class="card">
+
+        <div class="stat-label">Ventas</div>
+
+        <div class="stat-value">
+          ${fmt(s.totalSales)}
+        </div>
+
+        <div class="small muted">
+          ${state.sales.length} ventas
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="stat-label">Ganancia neta</div>
+
+        <div
+          class="stat-value"
+          style="color:${s.totalProfit<0?"var(--red)":"var(--green)"}"
+        >
+          ${fmt(s.totalProfit)}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="stat-label">Disponible</div>
+
+      <div class="stat-value">
+        ${fmt(s.availableMoney)}
+      </div>
+
+    </div>
+
+
+    ${
+      state.transactions.length
+
+      ? `
+
+        <div class="section-head">
+          <h2>Reciente</h2>
+
+          <button onclick="go('history')">
+            Ver todo
+          </button>
+        </div>
+
+        ${state.transactions.slice(0,5).map(tx=>`
+
+          <div class="list-item recent-item">
+
+            <div class="list-icon">
+              ${moneyIcon(tx.type)}
+            </div>
+
+            <div class="transaction-info">
+
+              <b>${tx.description}</b>
+
+              <div class="small muted">
+                ${new Date(tx.date).toLocaleDateString("es-MX",{
+                  day:"numeric",
+                  month:"short"
+                })}
+              </div>
+
+            </div>
+
+            <b
+              style="color:${tx.amount>=0?"var(--green)":"var(--red)"}"
+            >
+              ${tx.amount>=0?"+":""}${fmt(tx.amount)}
+            </b>
+
+          </div>
+
+        `).join("")}
+
+      `
+
+      : `
+
+        <div class="card welcome-card">
+
+          <div class="welcome-icon">🍬</div>
+
+          <b>¡Bienvenida a Gummy Ware!</b>
+
+          <p class="muted small">
+            Registra tu primera venta o compra para comenzar.
+          </p>
+
+        </div>
+
+      `
+    }
+
+
+    <div class="home-actions">
 
       <button
         class="primary full"
@@ -638,10 +334,8 @@ function home() {
         ＋ Nueva venta
       </button>
 
-
       <button
         class="secondary full"
-        style="margin-top:10px"
         onclick="go('new-purchase')"
       >
         ＋ Nueva compra
@@ -649,220 +343,150 @@ function home() {
 
     </div>
 
+  </div>
   `;
-
 }
 
 
-/* =========================================================
+/* =========================
    NUEVA VENTA
-========================================================= */
+========================= */
 
-function newSale() {
+function newSale(){
 
   const st =
-    state.inventory.find(
-      x => x.id === "bolsitas"
-    );
+    state.inventory.find(x=>x.id==="bolsitas");
 
-  const stock =
-    st?.quantity || 0;
+  const stock = st?.quantity || 0;
 
   return `
 
-    ${header(
-      "Nueva venta",
-      "Registra una venta",
-      true
-    )}
+  ${header("Nueva venta","Registra una venta",true)}
 
-    <div class="px">
+  <div class="px">
 
-      <div class="card">
+    <div class="card">
 
-        <div class="field">
+      <div class="field">
 
-          <label>
-            Bolsitas
-          </label>
+        <label>Bolsitas</label>
 
-          <input
-            id="sale-bags"
-            class="input"
-            type="number"
-            min="1"
-            step="1"
-            inputmode="decimal"
-            value="20"
-          >
-
-        </div>
-
-
-        <div class="field">
-
-          <label>
-            Precio por bolsita
-          </label>
-
-          <input
-            id="sale-price"
-            class="input"
-            type="number"
-            min="0"
-            step="0.01"
-            inputmode="decimal"
-            value="${state.settings.defaultPrice}"
-          >
-
-        </div>
-
-
-        ${
-          stock > 0 && stock <= 20
-            ? `
-              <div class="badge warn">
-                ⚠️ Stock bajo (${stock} bolsitas)
-              </div>
-            `
-            : stock === 0
-            ? `
-              <div class="badge danger">
-                Sin bolsitas en inventario
-              </div>
-            `
-            : ""
-        }
-
-
-        <div
-          style="
-            background:#F8F7F9;
-            border-radius:18px;
-            padding:18px;
-            margin-top:15px
-          "
+        <input
+          id="sale-bags"
+          class="input"
+          type="number"
+          min="1"
+          inputmode="decimal"
+          value="20"
         >
 
-          <div class="stat-label">
-            Costo de producto
-          </div>
+      </div>
 
-          <div
-            id="sale-cost"
-            style="
-              font-size:20px;
-              font-weight:900;
-              margin-top:6px
-            "
-          >
-            ${fmt(
-              20 *
-              state.settings.gramsPerBag /
-              1000 *
-              state.settings.defaultCostPerKg
-            )}
-          </div>
 
-          <div class="small muted">
-            Calculado automáticamente
-          </div>
+      <div class="field">
 
+        <label>Precio por bolsita</label>
+
+        <input
+          id="sale-price"
+          class="input"
+          type="number"
+          min="0"
+          step="0.01"
+          inputmode="decimal"
+          value="${state.settings.defaultPrice}"
+        >
+
+      </div>
+
+
+      ${
+        stock>0 && stock<=20
+
+        ? `
+          <div class="badge warn">
+            ⚠️ Stock bajo (${stock} bolsitas)
+          </div>
+        `
+
+        : stock===0
+
+        ? `
+          <div class="badge danger">
+            Sin bolsitas en inventario
+          </div>
+        `
+
+        : ""
+      }
+
+
+      <div class="sale-cost-box">
+
+        <div class="stat-label">
+          Costo de producto
         </div>
 
+        <div id="sale-cost" class="sale-cost">
+          ${fmt(
+            20 *
+            state.settings.gramsPerBag /
+            1000 *
+            state.settings.defaultCostPerKg
+          )}
+        </div>
 
-        <div style="margin-top:18px">
-
-          <div class="stat-label">
-            Resumen
-          </div>
-
-
-          <div
-            class="row"
-            style="margin-top:9px"
-          >
-
-            <span>
-              Venta total
-            </span>
-
-            <b id="sale-total">
-              ${fmt(
-                20 *
-                state.settings.defaultPrice
-              )}
-            </b>
-
-          </div>
-
-
-          <div
-            class="row"
-            style="margin-top:7px"
-          >
-
-            <span>
-              Ganancia estimada
-            </span>
-
-            <b id="sale-profit">
-              ${fmt(
-                20 *
-                state.settings.defaultPrice -
-                20 *
-                state.settings.gramsPerBag /
-                1000 *
-                state.settings.defaultCostPerKg
-              )}
-            </b>
-
-          </div>
-
+        <div class="small muted">
+          Calculado automáticamente
         </div>
 
       </div>
 
 
-      <button
-        class="primary full"
-        onclick="saveSale()"
-      >
-        Registrar venta
-      </button>
+      <div class="sale-summary">
+
+        <div class="stat-label">
+          Resumen
+        </div>
+
+        <div class="row summary-row">
+          <span>Venta total</span>
+          <b id="sale-total">
+            ${fmt(20*state.settings.defaultPrice)}
+          </b>
+        </div>
+
+        <div class="row summary-row">
+          <span>Ganancia estimada</span>
+          <b id="sale-profit"></b>
+        </div>
+
+      </div>
 
     </div>
 
+
+    <button
+      class="primary full"
+      onclick="saveSale()"
+    >
+      Registrar venta
+    </button>
+
+  </div>
+
   `;
-
 }
 
+function updateSale(){
 
-/* =========================================================
-   ACTUALIZAR VENTA
-========================================================= */
+  const bagsEl = document.querySelector("#sale-bags");
+  const priceEl = document.querySelector("#sale-price");
 
-function updateSale() {
+  if(!bagsEl || !priceEl) return;
 
-  const bagsInput =
-    document.querySelector(
-      "#sale-bags"
-    );
-
-  const priceInput =
-    document.querySelector(
-      "#sale-price"
-    );
-
-  if (!bagsInput || !priceInput) {
-    return;
-  }
-
-  const b =
-    Number(bagsInput.value) || 0;
-
-  const p =
-    Number(priceInput.value) || 0;
+  const b = +bagsEl.value || 0;
+  const p = +priceEl.value || 0;
 
   const c =
     b *
@@ -870,83 +494,29 @@ function updateSale() {
     1000 *
     state.settings.defaultCostPerKg;
 
+  const total = b*p;
+  const profit = total-c;
 
-  const total =
-    b * p;
+  const totalEl = document.querySelector("#sale-total");
+  const costEl = document.querySelector("#sale-cost");
+  const profitEl = document.querySelector("#sale-profit");
 
-  const profit =
-    total - c;
-
-
-  const totalElement =
-    document.querySelector(
-      "#sale-total"
-    );
-
-  const costElement =
-    document.querySelector(
-      "#sale-cost"
-    );
-
-  const profitElement =
-    document.querySelector(
-      "#sale-profit"
-    );
-
-
-  if (totalElement) {
-    totalElement.textContent =
-      fmt(total);
-  }
-
-
-  if (costElement) {
-    costElement.textContent =
-      fmt(c);
-  }
-
-
-  if (profitElement) {
-    profitElement.textContent =
-      fmt(profit);
-  }
-
+  if(totalEl) totalEl.textContent = fmt(total);
+  if(costEl) costEl.textContent = fmt(c);
+  if(profitEl) profitEl.textContent = fmt(profit);
 }
 
-
-/* =========================================================
-   GUARDAR VENTA
-========================================================= */
-
-function saveSale() {
-
-  const bagsElement =
-    document.querySelector(
-      "#sale-bags"
-    );
-
-  const priceElement =
-    document.querySelector(
-      "#sale-price"
-    );
+function saveSale(){
 
   const b =
-    Number(bagsElement?.value) || 0;
+    +document.querySelector("#sale-bags").value || 0;
 
   const p =
-    Number(priceElement?.value) || 0;
+    +document.querySelector("#sale-price").value || 0;
 
-
-  if (b <= 0 || p <= 0) {
-
-    toast(
-      "Ingresa la cantidad y el precio"
-    );
-
-    return;
-
+  if(b<=0 || p<=0){
+    return toast("Ingresa la cantidad y el precio");
   }
-
 
   const c =
     b *
@@ -954,789 +524,504 @@ function saveSale() {
     1000 *
     state.settings.defaultCostPerKg;
 
-
-  const total =
-    b * p;
-
-  const profit =
-    total - c;
-
+  const total = b*p;
+  const profit = total-c;
 
   const sale = {
-
-    id: uid(),
-
-    date:
-      new Date().toISOString(),
-
-    bagsCount: b,
-
-    pricePerBag: p,
-
+    id:uid(),
+    date:new Date().toISOString(),
+    bagsCount:b,
+    pricePerBag:p,
     total,
-
-    costUsed: c,
-
+    costUsed:c,
     profit,
-
-    forRestock: c,
-
-    isAutoCalc: true
-
+    forRestock:c,
+    isAutoCalc:true
   };
-
 
   state.sales.unshift(sale);
 
-
   const inv =
-    state.inventory.find(
-      x => x.id === "bolsitas"
-    );
+    state.inventory.find(x=>x.id==="bolsitas");
 
-
-  if (inv) {
-
+  if(inv){
     inv.quantity =
-      Math.max(
-        0,
-        inv.quantity - b
-      );
-
+      Math.max(0,inv.quantity-b);
   }
 
-
   state.transactions.unshift({
-
-    id: uid(),
-
-    date: sale.date,
-
-    type: "sale",
-
+    id:uid(),
+    date:sale.date,
+    type:"sale",
     description:
-      `Venta de ${b} bolsita${
-        b !== 1 ? "s" : ""
-      }`,
-
-    amount: total,
-
-    saleId: sale.id
-
+      `Venta de ${b} bolsita${b!==1?"s":""}`,
+    amount:total,
+    saleId:sale.id
   });
-
 
   save();
 
   toast("Venta registrada");
 
   go("home");
-
 }
 
 
-/* =========================================================
-   NUEVA COMPRA
-========================================================= */
+/* =========================
+   COMPRAS
+========================= */
 
-function purchase() {
+function purchase(){
 
   return `
 
-    ${header(
-      "Nueva compra",
-      "Registra una compra",
-      true
-    )}
+  ${header("Nueva compra","Registra una compra",true)}
 
-    <div class="px">
+  <div class="px">
 
-      <div class="card">
+    <div class="card">
 
-        <div class="field">
+      <div class="field">
 
-          <label>
-            Producto
-          </label>
+        <label>Producto</label>
 
-          <select
-            id="p-product"
-            class="input"
-          >
-            <option>Gomitas</option>
-            <option>Bolsitas</option>
-            <option>Gusanos</option>
-            <option>Panditas</option>
-            <option>Tiburones</option>
-            <option>Chamoy</option>
-            <option>Miguelito</option>
-            <option>Otro</option>
-          </select>
+        <select id="p-product" class="input">
 
-        </div>
+          <option>Gomitas</option>
+          <option>Bolsitas</option>
+          <option>Gusanos</option>
+          <option>Panditas</option>
+          <option>Tiburones</option>
+          <option>Chamoy</option>
+          <option>Miguelito</option>
+          <option>Otro</option>
+
+        </select>
+
+      </div>
 
 
-        <div class="grid2">
-
-          <div class="field">
-
-            <label>
-              Cantidad
-            </label>
-
-            <input
-              id="p-qty"
-              class="input"
-              type="number"
-              min="0"
-              step="0.01"
-              value="1"
-            >
-
-          </div>
-
-
-          <div class="field">
-
-            <label>
-              Unidad
-            </label>
-
-            <select
-              id="p-unit"
-              class="input"
-            >
-              <option>kg</option>
-              <option>unidades</option>
-              <option>g</option>
-              <option>ml</option>
-              <option>paquetes</option>
-            </select>
-
-          </div>
-
-        </div>
-
+      <div class="grid2">
 
         <div class="field">
 
-          <label>
-            Costo total
-          </label>
+          <label>Cantidad</label>
 
           <input
-            id="p-cost"
+            id="p-qty"
             class="input"
             type="number"
             min="0"
-            step="0.01"
-            inputmode="decimal"
-            placeholder="$0"
+            value="1"
           >
 
         </div>
 
 
-        <div
-          style="
-            background:#FFF0F3;
-            border-radius:16px;
-            padding:13px;
-            font-size:12px;
-            color:var(--muted)
-          "
-        >
-          Esta compra se registra como inventario
-          del negocio, no como pérdida.
-          El gasto se refleja en tu dinero disponible.
+        <div class="field">
+
+          <label>Unidad</label>
+
+          <select id="p-unit" class="input">
+
+            <option>kg</option>
+            <option>unidades</option>
+            <option>g</option>
+            <option>ml</option>
+            <option>paquetes</option>
+
+          </select>
+
         </div>
 
       </div>
 
 
-      <button
-        class="primary full"
-        onclick="savePurchase()"
-      >
-        Guardar compra
-      </button>
+      <div class="field">
+
+        <label>Costo total</label>
+
+        <input
+          id="p-cost"
+          class="input"
+          type="number"
+          inputmode="decimal"
+          placeholder="$0"
+        >
+
+      </div>
+
+
+      <div class="info-box">
+        Esta compra se registra como inventario del negocio,
+        no como pérdida. El gasto se refleja en tu dinero disponible.
+      </div>
 
     </div>
 
-  `;
 
+    <button
+      class="primary full"
+      onclick="savePurchase()"
+    >
+      Guardar compra
+    </button>
+
+  </div>
+
+  `;
 }
 
-
-/* =========================================================
-   GUARDAR COMPRA
-========================================================= */
-
-function savePurchase() {
+function savePurchase(){
 
   const product =
-    document.querySelector(
-      "#p-product"
-    )?.value;
+    document.querySelector("#p-product").value;
 
   const q =
-    Number(
-      document.querySelector(
-        "#p-qty"
-      )?.value
-    ) || 0;
+    +document.querySelector("#p-qty").value || 0;
 
   const unit =
-    document.querySelector(
-      "#p-unit"
-    )?.value;
+    document.querySelector("#p-unit").value;
 
   const cost =
-    Number(
-      document.querySelector(
-        "#p-cost"
-      )?.value
-    ) || 0;
+    +document.querySelector("#p-cost").value || 0;
 
-
-  if (
-    q <= 0 ||
-    cost <= 0
-  ) {
-
-    toast(
-      "Completa todos los campos"
-    );
-
-    return;
-
+  if(q<=0 || cost<=0){
+    return toast("Completa todos los campos");
   }
 
-
   const p = {
-
-    id: uid(),
-
-    date:
-      new Date().toISOString(),
-
+    id:uid(),
+    date:new Date().toISOString(),
     product,
-
-    quantity: q,
-
+    quantity:q,
     unit,
-
     cost
-
   };
-
 
   state.purchases.unshift(p);
 
-
   const item =
     state.inventory.find(
-      x =>
-        x.name.toLowerCase() ===
-        product.toLowerCase()
+      x=>x.name.toLowerCase()===product.toLowerCase()
     );
 
-
-  if (item) {
+  if(item){
 
     const val =
-      item.quantity *
-      item.avgCost +
-      cost;
+      item.quantity*item.avgCost+cost;
 
     const itemq =
-      item.quantity + q;
+      item.quantity+q;
 
     item.avgCost =
-      itemq
-        ? val / itemq
-        : 0;
+      itemq ? val/itemq : 0;
 
-    item.quantity =
-      itemq;
-
+    item.quantity = itemq;
   }
 
-
   state.transactions.unshift({
-
-    id: uid(),
-
-    date: p.date,
-
-    type: "purchase",
-
+    id:uid(),
+    date:p.date,
+    type:"purchase",
     description:
       `Compra de ${q} ${unit} de ${product}`,
-
-    amount: -cost,
-
-    purchaseId: p.id
-
+    amount:-cost,
+    purchaseId:p.id
   });
-
 
   save();
 
   toast("Compra registrada");
 
   go("inventory");
-
 }
 
 
-/* =========================================================
+/* =========================
    INVENTARIO
-========================================================= */
+========================= */
 
-function inventory() {
+function inventory(){
 
   const low =
     state.inventory.filter(
-      i =>
-        i.quantity > 0 &&
-        i.quantity <= i.lowThreshold
+      i=>i.quantity>0 &&
+      i.quantity<=i.lowThreshold
     );
-
 
   return `
 
-    ${header(
-      "Inventario",
-      "Tu stock actual"
-    )}
+  ${header("Inventario","Tu stock actual")}
 
-    <div class="px">
+  <div class="px">
+
+    ${
+      low.length
+
+      ? `
+        <div class="card stock-warning">
+
+          <b>Stock bajo</b>
+
+          <div class="small">
+            ${low.map(i=>i.name).join(", ")}
+            ${low.length===1?"necesita":"necesitan"}
+            reposición.
+          </div>
+
+        </div>
+      `
+
+      : ""
+    }
 
 
-      ${
-        low.length
-          ? `
-            <div
-              class="card"
-              style="
-                background:#FEF3C7;
-                color:#92400E
-              "
-            >
+    <div class="card inventory-card">
 
-              <b>
-                Stock bajo
-              </b>
+      ${state.inventory.map(i=>`
 
-              <div
-                class="small"
-                style="margin-top:4px"
-              >
-                ${low
-                  .map(i => i.name)
-                  .join(", ")}
+        <div class="list-item">
 
-                ${
-                  low.length === 1
-                    ? "necesita"
-                    : "necesitan"
-                }
+          <div class="list-icon">
+            ${i.name==="Bolsitas"?"▣":"🍬"}
+          </div>
 
-                reposición.
-              </div>
+          <div class="transaction-info">
 
+            <b>${i.name}</b>
+
+            <div class="small muted">
+              Costo prom:
+              ${fmt(i.avgCost)}/${i.unit}
             </div>
-          `
-          : ""
-      }
 
+          </div>
 
-      <div
-        class="card"
-        style="
-          padding:0;
-          overflow:hidden
-        "
-      >
+          <div class="inventory-right">
 
-        ${state.inventory
-          .map(
-            i => `
+            <b>${qty(i.quantity,i.unit)}</b>
 
-              <div class="list-item">
+            <br>
 
-                <div class="list-icon">
+            <span class="badge ${
+              i.quantity===0
+                ?"danger"
+                :i.quantity<=i.lowThreshold
+                ?"warn"
+                :"success"
+            }">
 
-                  ${
-                    i.name === "Bolsitas"
-                      ? "▣"
-                      : "🍬"
-                  }
+              ${
+                i.quantity===0
+                  ?"Agotado"
+                  :i.quantity<=i.lowThreshold
+                  ?"Stock bajo"
+                  :"Disponible"
+              }
 
-                </div>
+            </span>
 
+          </div>
 
-                <div style="flex:1">
+        </div>
 
-                  <b>
-                    ${i.name}
-                  </b>
-
-                  <div class="small muted">
-
-                    Costo prom:
-                    ${fmt(i.avgCost)}
-                    /${i.unit}
-
-                  </div>
-
-                </div>
-
-
-                <div
-                  style="text-align:right"
-                >
-
-                  <b>
-                    ${qty(
-                      i.quantity,
-                      i.unit
-                    )}
-                  </b>
-
-                  <br>
-
-                  <span
-                    class="
-                      badge
-                      ${
-                        i.quantity === 0
-                          ? "danger"
-                          : i.quantity <= i.lowThreshold
-                          ? "warn"
-                          : "success"
-                      }
-                    "
-                  >
-
-                    ${
-                      i.quantity === 0
-                        ? "Agotado"
-                        : i.quantity <= i.lowThreshold
-                        ? "Stock bajo"
-                        : "Disponible"
-                    }
-
-                  </span>
-
-                </div>
-
-              </div>
-
-            `
-          )
-          .join("")}
-
-      </div>
-
-
-      <button
-        class="primary full"
-        style="margin-top:14px"
-        onclick="go('new-purchase')"
-      >
-        ＋ Nueva compra
-      </button>
+      `).join("")}
 
     </div>
 
-  `;
 
+    <button
+      class="primary full"
+      onclick="go('new-purchase')"
+    >
+      ＋ Nueva compra
+    </button>
+
+  </div>
+
+  `;
 }
 
 
-/* =========================================================
+/* =========================
    HISTORIAL
-========================================================= */
+========================= */
 
-function history() {
+function history(){
 
   const s = stats();
 
   return `
 
-    ${header(
-      "Historial",
-      "Todos tus movimientos"
-    )}
+  ${header("Historial","Todos tus movimientos")}
 
-    <div class="px">
+  <div class="px">
 
-      <div class="grid2">
+    <div class="grid2">
 
-        <div class="card">
+      <div class="card">
+        <div class="stat-label">Ventas totales</div>
+        <div class="stat-value">${fmt(s.totalSales)}</div>
+        <div class="small muted">${state.sales.length} ventas</div>
+      </div>
 
-          <div class="stat-label">
-            Ventas totales
-          </div>
+      <div class="card">
+        <div class="stat-label">Compras totales</div>
+        <div class="stat-value">${fmt(s.totalPurchases)}</div>
+        <div class="small muted">${state.purchases.length} compras</div>
+      </div>
 
-          <div class="stat-value">
-            ${fmt(s.totalSales)}
-          </div>
-
-          <div class="small muted">
-            ${state.sales.length} ventas
-          </div>
-
+      <div class="card">
+        <div class="stat-label">Ganancia neta</div>
+        <div class="stat-value" style="color:var(--green)">
+          ${fmt(s.totalProfit)}
         </div>
+      </div>
 
-
-        <div class="card">
-
-          <div class="stat-label">
-            Compras totales
-          </div>
-
-          <div class="stat-value">
-            ${fmt(s.totalPurchases)}
-          </div>
-
-          <div class="small muted">
-            ${state.purchases.length} compras
-          </div>
-
+      <div class="card">
+        <div class="stat-label">Disponible</div>
+        <div class="stat-value">
+          ${fmt(s.availableMoney)}
         </div>
-
-
-        <div class="card">
-
-          <div class="stat-label">
-            Ganancia neta
-          </div>
-
-          <div
-            class="stat-value"
-            style="color:var(--green)"
-          >
-            ${fmt(s.totalProfit)}
-          </div>
-
-        </div>
-
-
-        <div class="card">
-
-          <div class="stat-label">
-            Disponible
-          </div>
-
-          <div class="stat-value">
-            ${fmt(s.availableMoney)}
-          </div>
-
-        </div>
-
       </div>
 
     </div>
 
-
-    <div class="section-head">
-
-      <h2>
-        Movimientos
-      </h2>
-
-    </div>
+  </div>
 
 
-    <div
-      class="card"
-      style="
-        padding:0;
-        overflow:hidden
-      "
-    >
+  <div class="section-head">
+    <h2>Movimientos</h2>
+  </div>
+
+
+  <div class="px">
+
+    <div class="card history-card">
 
       ${
         state.transactions.length
 
-          ? state.transactions
-              .map(
-                tx => `
+        ? state.transactions.map(tx=>`
 
-                  <div class="list-item">
+          <div class="list-item">
 
-                    <div class="list-icon">
+            <div class="list-icon">
+              ${tx.type==="sale"?"↗":"↙"}
+            </div>
 
-                      ${
-                        tx.type === "sale"
-                          ? "↗"
-                          : "↙"
-                      }
+            <div class="transaction-info">
 
-                    </div>
+              <b>${tx.description}</b>
 
+              <div class="small muted">
 
-                    <div style="flex:1">
+                ${new Date(tx.date).toLocaleDateString(
+                  "es-MX",
+                  {
+                    day:"numeric",
+                    month:"short"
+                  }
+                )}
 
-                      <b>
-                        ${tx.description}
-                      </b>
+                ·
 
-                      <div class="small muted">
+                ${new Date(tx.date).toLocaleTimeString(
+                  "es-MX",
+                  {
+                    hour:"2-digit",
+                    minute:"2-digit"
+                  }
+                )}
 
-                        ${new Date(
-                          tx.date
-                        ).toLocaleDateString(
-                          "es-MX",
-                          {
-                            day: "numeric",
-                            month: "short"
-                          }
-                        )}
-
-                        ·
-
-                        ${new Date(
-                          tx.date
-                        ).toLocaleTimeString(
-                          "es-MX",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          }
-                        )}
-
-                      </div>
-
-                    </div>
-
-
-                    <b
-                      style="
-                        color:
-                          ${
-                            tx.amount >= 0
-                              ? "var(--green)"
-                              : "var(--red)"
-                          }
-                      "
-                    >
-                      ${
-                        tx.amount >= 0
-                          ? "+"
-                          : ""
-                      }${fmt(tx.amount)}
-                    </b>
-
-                  </div>
-
-                `
-              )
-              .join("")
-
-          : `
-              <div class="empty">
-                Aún no hay movimientos.
               </div>
-            `
+
+            </div>
+
+            <b style="color:${tx.amount>=0?"var(--green)":"var(--red)"}">
+
+              ${tx.amount>=0?"+":""}${fmt(tx.amount)}
+
+            </b>
+
+          </div>
+
+        `).join("")
+
+        : `
+          <div class="empty">
+            Aún no hay movimientos.
+          </div>
+        `
       }
 
     </div>
 
-  `;
+  </div>
 
+  `;
 }
 
 
-/* =========================================================
+/* =========================
    CALCULADORA
-========================================================= */
+========================= */
 
-function calculator() {
+function calculator(){
 
   return `
 
-    ${header(
-      "Calculadora",
-      "Estima tus ganancias"
-    )}
+  ${header("Calculadora","Estima tus ganancias")}
 
-    <div class="px">
+  <div class="px">
 
-      <div class="card">
+    <div class="card">
 
-        <div
-          class="row"
-          style="
-            background:#F0EFF2;
-            padding:4px;
-            border-radius:14px;
-            margin-bottom:15px
-          "
+      <div class="calc-tabs">
+
+        <button
+          class="${window.calcMode!=="basic"?"active":""}"
+          onclick="calcMode='business';go('calculator')"
         >
+          Negocio
+        </button>
 
-          <button
-            class="secondary full"
-            id="biz-tab"
-            onclick="
-              calcMode='business';
-              go('calculator')
-            "
-          >
-            Negocio
-          </button>
-
-
-          <button
-            class="ghost full"
-            onclick="
-              calcMode='basic';
-              go('calculator')
-            "
-          >
-            Calculadora
-          </button>
-
-        </div>
-
-
-        ${
-          window.calcMode !== "basic"
-            ? businessCalc()
-            : basicCalc()
-        }
+        <button
+          class="${window.calcMode==="basic"?"active":""}"
+          onclick="calcMode='basic';go('calculator')"
+        >
+          Calculadora
+        </button>
 
       </div>
 
+      ${
+        window.calcMode!=="basic"
+          ? businessCalc()
+          : basicCalc()
+      }
+
     </div>
 
-  `;
+  </div>
 
+  `;
 }
 
-
-/* =========================================================
-   CALCULADORA DE NEGOCIO
-========================================================= */
-
-function businessCalc() {
+function businessCalc(){
 
   const b =
-    window.calcB || 35;
+    window.calcB ?? 35;
 
   const p =
-    window.calcP ||
-    state.settings.defaultPrice;
+    window.calcP ?? state.settings.defaultPrice;
 
   const c =
     window.calcC ?? "";
 
   const e =
-    window.calcE || 0;
-
+    window.calcE ?? 0;
 
   const auto =
     b *
@@ -1744,28 +1029,17 @@ function businessCalc() {
     1000 *
     state.settings.defaultCostPerKg;
 
-
   const cost =
-    c === ""
-      ? auto
-      : Number(c);
-
+    c === "" ? auto : +c;
 
   const total =
-    b * p;
-
+    b*p;
 
   const profit =
-    total -
-    cost -
-    e;
-
+    total-cost-e;
 
   const per =
-    b
-      ? profit / b
-      : 0;
-
+    b ? profit/b : 0;
 
   const remain =
     Math.max(
@@ -1774,18 +1048,15 @@ function businessCalc() {
       0
     );
 
-
   const need =
-    per > 0
-      ? Math.ceil(remain / per)
+    per>0
+      ? Math.ceil(remain/per)
       : 0;
-
 
   const days =
     b
-      ? Math.ceil(need / b)
+      ? Math.ceil(need/b)
       : 0;
-
 
   return `
 
@@ -1794,23 +1065,15 @@ function businessCalc() {
     </div>
 
 
-    <div
-      class="field"
-      style="margin-top:14px"
-    >
+    <div class="field calculator-field">
 
-      <label>
-        Bolsitas a vender
-      </label>
+      <label>Bolsitas a vender</label>
 
       <input
         class="input"
         type="number"
         value="${b}"
-        oninput="
-          calcB=+this.value;
-          refreshBusinessCalc(this)
-        "
+        oninput="calcB=+this.value;updateBusinessCalc()"
       >
 
     </div>
@@ -1818,18 +1081,13 @@ function businessCalc() {
 
     <div class="field">
 
-      <label>
-        Precio por bolsita
-      </label>
+      <label>Precio por bolsita</label>
 
       <input
         class="input"
         type="number"
         value="${p}"
-        oninput="
-          calcP=+this.value;
-          refreshBusinessCalc(this)
-        "
+        oninput="calcP=+this.value;updateBusinessCalc()"
       >
 
     </div>
@@ -1837,19 +1095,14 @@ function businessCalc() {
 
     <div class="field">
 
-      <label>
-        Costo del producto
-      </label>
+      <label>Costo del producto</label>
 
       <input
         class="input"
         type="number"
         value="${c}"
         placeholder="Calculado automático"
-        oninput="
-          calcC=this.value;
-          refreshBusinessCalc(this)
-        "
+        oninput="calcC=this.value;updateBusinessCalc()"
       >
 
     </div>
@@ -1857,100 +1110,46 @@ function businessCalc() {
 
     <div class="field">
 
-      <label>
-        Otros costos
-      </label>
+      <label>Otros costos</label>
 
       <input
         class="input"
         type="number"
         value="${e}"
-        oninput="
-          calcE=+this.value;
-          refreshBusinessCalc(this)
-        "
+        oninput="calcE=+this.value;updateBusinessCalc()"
       >
 
     </div>
 
 
-    <div
-      style="
-        background:#FFF8F9;
-        border-radius:18px;
-        padding:18px
-      "
-    >
+    <div class="calculator-result">
+
+      <div class="row">
+        <span>Venta total</span>
+        <b>${fmt(total)}</b>
+      </div>
+
+      <div class="row">
+        <span>Costo total</span>
+        <b class="red-text">−${fmt(cost+e)}</b>
+      </div>
+
+      <hr>
 
       <div class="row">
 
-        <span>
-          Venta total
-        </span>
-
-        <b>
-          ${fmt(total)}
-        </b>
-
-      </div>
-
-
-      <div
-        class="row"
-        style="margin-top:10px"
-      >
-
-        <span>
-          Costo total
-        </span>
-
-        <b style="color:var(--red)">
-          −${fmt(cost + e)}
-        </b>
-
-      </div>
-
-
-      <hr
-        style="
-          border:0;
-          border-top:
-            1px solid var(--border);
-          margin:14px 0
-        "
-      >
-
-
-      <div class="row">
-
-        <b>
-          Ganancia estimada
-        </b>
+        <b>Ganancia estimada</b>
 
         <b
-          style="
-            font-size:23px;
-            color:
-              ${
-                profit >= 0
-                  ? "var(--green)"
-                  : "var(--red)"
-              }
-          "
+          class="calculator-profit"
+          style="color:${profit>=0?"var(--green)":"var(--red)"}"
         >
           ${fmt(profit)}
         </b>
 
       </div>
 
-
-      <div
-        class="small muted"
-        style="
-          text-align:right;
-          margin-top:6px
-        "
-      >
+      <div class="small muted calculator-per">
         ${fmt(per)} por bolsita
       </div>
 
@@ -1958,105 +1157,72 @@ function businessCalc() {
 
 
     ${
-      remain > 0 && per > 0
-        ? `
+      remain>0 && per>0
 
-          <div
-            class="card"
-            style="
-              margin-top:14px;
-              background:#FFF0F3
-            "
-          >
+      ? `
+        <div class="card goal-card">
 
-            <b>
-              ¿Cuánto necesito vender?
-            </b>
+          <b>¿Cuánto necesito vender?</b>
 
-            <p
-              style="
-                color:var(--pink);
-                font-weight:800
-              "
-            >
-              Necesitas vender aproximadamente
-              <strong>${b}</strong>
-              bolsitas al día durante
-              <strong>${days}</strong>
-              días.
-            </p>
+          <p>
+            Necesitas vender aproximadamente
+            <strong>${b}</strong>
+            bolsitas al día durante
+            <strong>${days}</strong>
+            días.
+          </p>
 
+          <div class="grid2">
 
-            <div class="grid2">
+            <div class="badge neutral">
+              Meta restante<br>
+              ${fmt(remain)}
+            </div>
 
-              <div class="badge neutral">
-
-                Meta restante
-
-                <br>
-
-                ${fmt(remain)}
-
-              </div>
-
-
-              <div class="badge neutral">
-
-                Bolsitas necesarias
-
-                <br>
-
-                ${need}
-
-              </div>
-
+            <div class="badge neutral">
+              Bolsitas necesarias<br>
+              ${need}
             </div>
 
           </div>
 
-        `
-        : ""
+        </div>
+      `
+
+      : ""
     }
 
   `;
-
 }
 
+function updateBusinessCalc(){
 
-/* =========================================================
-   ACTUALIZAR SOLO CALCULADORA
-========================================================= */
+  const container =
+    document.querySelector(".calculator-field")?.parentElement;
 
-function refreshBusinessCalc(input) {
-
-  /*
-     Evita reconstruir toda la pantalla mientras
-     el usuario está escribiendo.
-
-     Esto también evita que el cursor se mueva
-     o que el teclado del teléfono desaparezca.
-  */
-
-  const card =
-    input?.closest(".card");
-
-  if (!card) {
-    return;
+  if(container){
+    /*
+      Se vuelve a dibujar la pantalla para mantener
+      la calculadora sincronizada.
+    */
+    render();
   }
-
-  /*
-     La calculadora se actualiza al perder el foco.
-     Mientras escribe, conserva el campo.
-  */
-
 }
 
 
-/* =========================================================
+/* =========================
    CALCULADORA BÁSICA
-========================================================= */
+========================= */
 
-function basicCalc() {
+function basicCalc(){
+
+  const keys = [
+    "C","%","÷",
+    "7","8","9","×",
+    "4","5","6","−",
+    "1","2","3","+",
+    "0",".","="
+  ];
 
   return `
 
@@ -2071,94 +1237,40 @@ function basicCalc() {
 
     <div class="keys">
 
-      ${[
-        "C",
-        "%",
-        "÷",
-        "7",
-        "8",
-        "9",
-        "×",
-        "4",
-        "5",
-        "6",
-        "−",
-        "1",
-        "2",
-        "3",
-        "+",
-        "0",
-        ".",
-        "="
-      ]
-        .map(
-          k => `
+      ${keys.map(k=>`
 
-            <button
-              class="
-                key
-                ${
-                  [
-                    "÷",
-                    "×",
-                    "−",
-                    "+"
-                  ].includes(k)
-                    ? "op"
-                    : ""
-                }
+        <button
+          class="key
+            ${["÷","×","−","+"].includes(k)?"op":""}
+            ${["C","%"].includes(k)?"special":""}
+            ${k==="="?"equal":""}
+          "
+          onclick="calcPress('${k}')"
+        >
+          ${k}
+        </button>
 
-                ${
-                  [
-                    "C",
-                    "%"
-                  ].includes(k)
-                    ? "special"
-                    : ""
-                }
-
-                ${
-                  k === "="
-                    ? "equal"
-                    : ""
-                }
-              "
-              onclick="
-                calcPress('${k}')
-              "
-            >
-              ${k}
-            </button>
-
-          `
-        )
-        .join("")}
+      `).join("")}
 
     </div>
 
   `;
-
 }
 
 
-/* =========================================================
+/* =========================
    DISTRIBUCIÓN
-========================================================= */
+========================= */
 
-function distribution() {
+function distribution(){
 
-  const last =
-    state.sales[0];
+  const last = state.sales[0];
 
-
-  if (!last) {
+  if(!last){
 
     return `
 
-      ${header(
-        "Distribución",
-        "Divide tu dinero"
-      )}
+      ${header("Distribución","Divide tu dinero")}
 
       <div class="px">
 
@@ -2168,13 +1280,11 @@ function distribution() {
 
           <br>
 
-          <b>
-            Sin ventas aún
-          </b>
+          <b>Sin ventas aún</b>
 
           <p>
-            Registra tu primera venta
-            para ver la distribución.
+            Registra tu primera venta para
+            ver la distribución.
           </p>
 
         </div>
@@ -2182,29 +1292,17 @@ function distribution() {
       </div>
 
     `;
-
   }
 
-
-  const total =
-    last.total;
-
-  const rest =
-    last.forRestock;
-
-  const profit =
-    last.profit;
-
+  const total = last.total;
+  const rest = last.forRestock;
+  const profit = last.profit;
 
   return `
 
-    ${header(
-      "Distribución",
-      "Divide tu dinero"
-    )}
+    ${header("Distribución","Divide tu dinero")}
 
     <div class="px">
-
 
       <div class="card">
 
@@ -2212,35 +1310,16 @@ function distribution() {
           Resumen acumulado
         </div>
 
-
-        <div
-          class="grid2"
-          style="margin-top:14px"
-        >
+        <div class="grid2 distribution-grid">
 
           <div>
-
-            <div class="small muted">
-              Ventas
-            </div>
-
-            <b>
-              ${fmt(stats().totalSales)}
-            </b>
-
+            <div class="small muted">Ventas</div>
+            <b>${fmt(stats().totalSales)}</b>
           </div>
 
-
           <div>
-
-            <div class="small muted">
-              Ganancia
-            </div>
-
-            <b>
-              ${fmt(stats().totalProfit)}
-            </b>
-
+            <div class="small muted">Ganancia</div>
+            <b>${fmt(stats().totalProfit)}</b>
           </div>
 
         </div>
@@ -2254,61 +1333,26 @@ function distribution() {
           Última venta
         </div>
 
-
-        <div
-          style="
-            font-size:28px;
-            font-weight:900;
-            margin:8px 0
-          "
-        >
+        <div class="distribution-total">
           ${fmt(total)}
         </div>
 
-
         <div class="row">
-
-          <span>
-            Para reponer
-          </span>
-
-          <b>
-            ${fmt(rest)}
-          </b>
-
+          <span>Para reponer</span>
+          <b>${fmt(rest)}</b>
         </div>
 
-
-        <div
-          class="row"
-          style="margin-top:9px"
-        >
-
-          <span>
-            Ganancia
-          </span>
-
+        <div class="row distribution-row">
+          <span>Ganancia</span>
           <b style="color:var(--green)">
             ${fmt(profit)}
           </b>
-
         </div>
 
-
-        <div
-          class="progress"
-          style="margin-top:15px"
-        >
+        <div class="progress distribution-progress">
 
           <div
-            style="
-              width:
-                ${
-                  total
-                    ? rest / total * 100
-                    : 0
-                }%
-            "
+            style="width:${total?rest/total*100:0}%"
           ></div>
 
         </div>
@@ -2326,291 +1370,211 @@ function distribution() {
     </div>
 
   `;
-
 }
 
 
-/* =========================================================
+/* =========================
    AJUSTES
-========================================================= */
+========================= */
 
-function settings() {
+function settings(){
 
   return `
 
-    ${header(
-      "Ajustes",
-      "Configura tu negocio"
-    )}
+  ${header("Ajustes","Configura tu negocio")}
 
-    <div class="px">
+  <div class="px">
 
+    <div class="card">
 
-      <div class="card">
-
-        <div class="stat-label">
-          Configuración financiera
-        </div>
+      <div class="stat-label">
+        Configuración financiera
+      </div>
 
 
-        <div
-          class="field"
-          style="margin-top:14px"
+      <div class="field settings-first">
+
+        <label>Meta de ganancia</label>
+
+        <input
+          id="set-goal"
+          class="input"
+          type="number"
+          value="${state.settings.profitGoal}"
         >
 
-          <label>
-            Meta de ganancia
-          </label>
-
-          <input
-            id="set-goal"
-            class="input"
-            type="number"
-            value="${state.settings.profitGoal}"
-          >
-
-        </div>
+      </div>
 
 
-        <div class="field">
+      <div class="field">
 
-          <label>
-            Precio por bolsita
-          </label>
+        <label>Precio por bolsita</label>
 
-          <input
-            id="set-price"
-            class="input"
-            type="number"
-            value="${state.settings.defaultPrice}"
-          >
+        <input
+          id="set-price"
+          class="input"
+          type="number"
+          value="${state.settings.defaultPrice}"
+        >
 
-        </div>
+      </div>
 
 
-        <div class="field">
+      <div class="field">
 
-          <label>
-            Costo por Kg
-          </label>
+        <label>Costo por Kg</label>
 
-          <input
-            id="set-cost"
-            class="input"
-            type="number"
-            value="${state.settings.defaultCostPerKg}"
-          >
+        <input
+          id="set-cost"
+          class="input"
+          type="number"
+          value="${state.settings.defaultCostPerKg}"
+        >
 
-        </div>
+      </div>
 
 
-        <div class="field">
+      <div class="field">
 
-          <label>
-            Gramos por bolsita
-          </label>
+        <label>Gramos por bolsita</label>
 
-          <input
-            id="set-grams"
-            class="input"
-            type="number"
-            value="${state.settings.gramsPerBag}"
-          >
+        <input
+          id="set-grams"
+          class="input"
+          type="number"
+          value="${state.settings.gramsPerBag}"
+        >
 
-        </div>
+      </div>
 
 
-        <div class="checkbox-row">
+      <div class="checkbox-row">
 
-          <b>
-            Cálculo automático
-          </b>
-
-
-          <button
-            class="
-              toggle
-              ${
-                state.settings.autoCalculation
-                  ? "on"
-                  : ""
-              }
-            "
-            onclick="
-              state.settings.autoCalculation =
-                !state.settings.autoCalculation;
-
-              save();
-
-              go('settings')
-            "
-          >
-            <i></i>
-          </button>
-
-        </div>
-
+        <b>Cálculo automático</b>
 
         <button
-          class="primary full"
-          onclick="saveSettings()"
+          class="toggle ${state.settings.autoCalculation?"on":""}"
+          onclick="
+            state.settings.autoCalculation=!state.settings.autoCalculation;
+            save();
+            go('settings')
+          "
         >
-          Guardar cambios
+          <i></i>
         </button>
 
       </div>
 
 
-      <div class="card">
-
-        <div class="stat-label">
-          Datos
-        </div>
-
-
-        <button
-          class="secondary full"
-          style="margin-top:12px"
-          onclick="exportData()"
-        >
-          Exportar datos
-        </button>
-
-
-        <label
-          class="secondary full"
-          style="margin-top:10px"
-        >
-
-          <input
-            type="file"
-            accept=".json"
-            hidden
-            onchange="importData(event)"
-          >
-
-          Importar datos
-
-        </label>
-
-      </div>
-
-
-      <div class="card danger-zone">
-
-        <b>
-          Zona de peligro
-        </b>
-
-        <p class="small muted">
-          Borra todas las ventas,
-          compras e inventario.
-        </p>
-
-
-        <button
-          class="danger full"
-          onclick="resetData()"
-        >
-          Restablecer datos
-        </button>
-
-      </div>
-
-
-      <div
-        style="
-          text-align:center;
-          padding:15px;
-          color:var(--muted);
-          font-size:12px
-        "
+      <button
+        class="primary full"
+        onclick="saveSettings()"
       >
-
-        🍬 Gummy Ware
-
-        <br>
-
-        Compila tu Antojo
-
-        <br>
-
-        v1.1.0 • Datos guardados localmente
-
-      </div>
+        Guardar cambios
+      </button>
 
     </div>
 
-  `;
 
+    <div class="card">
+
+      <div class="stat-label">
+        Datos
+      </div>
+
+      <button
+        class="secondary full"
+        style="margin-top:12px"
+        onclick="exportData()"
+      >
+        Exportar datos
+      </button>
+
+      <label
+        class="secondary full"
+        style="margin-top:10px"
+      >
+
+        <input
+          type="file"
+          accept=".json"
+          hidden
+          onchange="importData(event)"
+        >
+
+        Importar datos
+
+      </label>
+
+    </div>
+
+
+    <div class="card danger-zone">
+
+      <b>Zona de peligro</b>
+
+      <p class="small muted">
+        Borra todas las ventas, compras e inventario.
+      </p>
+
+      <button
+        class="danger full"
+        onclick="resetData()"
+      >
+        Restablecer datos
+      </button>
+
+    </div>
+
+
+    <div class="app-version">
+
+      🍬 Gummy Ware<br>
+      Compila tu Antojo<br>
+      v1.1.0 • Datos guardados localmente
+
+    </div>
+
+  </div>
+
+  `;
 }
 
-
-/* =========================================================
-   GUARDAR AJUSTES
-========================================================= */
-
-function saveSettings() {
+function saveSettings(){
 
   state.settings.profitGoal =
-    Number(
-      document.querySelector(
-        "#set-goal"
-      )?.value
-    ) || 0;
-
+    +document.querySelector("#set-goal").value || 0;
 
   state.settings.defaultPrice =
-    Number(
-      document.querySelector(
-        "#set-price"
-      )?.value
-    ) || 0;
-
+    +document.querySelector("#set-price").value || 0;
 
   state.settings.defaultCostPerKg =
-    Number(
-      document.querySelector(
-        "#set-cost"
-      )?.value
-    ) || 0;
-
+    +document.querySelector("#set-cost").value || 0;
 
   state.settings.gramsPerBag =
-    Number(
-      document.querySelector(
-        "#set-grams"
-      )?.value
-    ) || 0;
-
+    +document.querySelector("#set-grams").value || 0;
 
   save();
 
   toast("Ajustes guardados");
 
   go("settings");
-
 }
 
 
-/* =========================================================
-   MODAL META
-========================================================= */
+/* =========================
+   MODALES
+========================= */
 
-function goalModal() {
+function goalModal(){
 
   modal(`
 
-    <h2>
-      ¿Cuánto quieres ganar?
-    </h2>
-
+    <h2>¿Cuánto quieres ganar?</h2>
 
     <div class="field">
 
-      <label>
-        Meta de ganancia
-      </label>
+      <label>Meta de ganancia</label>
 
       <input
         id="goal-modal"
@@ -2621,21 +1585,13 @@ function goalModal() {
 
     </div>
 
-
     <button
       class="primary full"
       onclick="
-        state.settings.profitGoal =
-          Number(
-            document.querySelector(
-              '#goal-modal'
-            ).value
-          ) || 0;
-
+        state.settings.profitGoal=
+        +document.querySelector('#goal-modal').value||0;
         save();
-
         closeModal();
-
         go('home')
       "
     >
@@ -2643,24 +1599,14 @@ function goalModal() {
     </button>
 
   `);
-
 }
 
+function modal(body){
 
-/* =========================================================
-   MODAL
-========================================================= */
-
-function modal(body) {
-
-  const d =
-    document.createElement("div");
+  const d = document.createElement("div");
 
   d.id = "modal";
-
-  d.className =
-    "modal-backdrop";
-
+  d.className = "modal-backdrop";
 
   d.innerHTML = `
 
@@ -2668,9 +1614,7 @@ function modal(body) {
 
       <div class="modal-top">
 
-        <b>
-          GummyWare
-        </b>
+        <b>GummyWare</b>
 
         <button
           class="modal-close"
@@ -2687,739 +1631,374 @@ function modal(body) {
 
   `;
 
+  document.body.appendChild(d);
+}
+
+function closeModal(){
+
+  document.querySelector("#modal")?.remove();
+}
+
+function toast(msg){
+
+  const d = document.createElement("div");
+
+  d.className = "toast";
+  d.textContent = msg;
 
   document.body.appendChild(d);
 
+  setTimeout(()=>d.remove(),2400);
 }
 
 
-/* =========================================================
-   CERRAR MODAL
-========================================================= */
+/* =========================
+   DATOS
+========================= */
 
-function closeModal() {
+function exportData(){
 
-  document
-    .querySelector("#modal")
-    ?.remove();
-
-}
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-function toast(msg) {
-
-  const d =
-    document.createElement("div");
-
-  d.className =
-    "toast";
-
-  d.textContent =
-    msg;
-
-
-  document.body.appendChild(d);
-
-
-  setTimeout(
-    () => d.remove(),
-    2400
+  const blob = new Blob(
+    [JSON.stringify(state,null,2)],
+    {type:"application/json"}
   );
 
-}
+  const a = document.createElement("a");
 
-
-/* =========================================================
-   EXPORTAR
-========================================================= */
-
-function exportData() {
-
-  const blob =
-    new Blob(
-      [
-        JSON.stringify(
-          state,
-          null,
-          2
-        )
-      ],
-      {
-        type:
-          "application/json"
-      }
-    );
-
-
-  const a =
-    document.createElement("a");
-
-
-  a.href =
-    URL.createObjectURL(blob);
-
-
-  a.download =
-    "gummyware-backup.json";
-
+  a.href = URL.createObjectURL(blob);
+  a.download = "gummyware-backup.json";
 
   a.click();
 
-
-  URL.revokeObjectURL(
-    a.href
-  );
-
+  URL.revokeObjectURL(a.href);
 }
 
+function importData(e){
 
-/* =========================================================
-   IMPORTAR
-========================================================= */
+  const f = e.target.files[0];
 
-function importData(e) {
+  if(!f) return;
 
-  const f =
-    e.target.files[0];
+  const r = new FileReader();
 
+  r.onload = ()=>{
 
-  if (!f) {
-    return;
-  }
+    try{
 
-
-  const r =
-    new FileReader();
-
-
-  r.onload = () => {
-
-    try {
-
-      state =
-        JSON.parse(
-          r.result
-        );
-
+      state = JSON.parse(r.result);
 
       save();
 
       go("settings");
 
-      toast(
-        "Datos importados"
-      );
+      toast("Datos importados");
 
-    } catch {
+    }catch{
 
-      toast(
-        "Archivo inválido"
-      );
+      toast("Archivo inválido");
 
     }
 
   };
 
-
   r.readAsText(f);
-
 }
 
+function resetData(){
 
-/* =========================================================
-   RESTABLECER
-========================================================= */
-
-function resetData() {
-
-  if (
+  if(
     confirm(
       "Esta acción no se puede deshacer. ¿Restablecer GummyWare?"
     )
-  ) {
+  ){
 
-    state =
-      structuredClone(
-        INITIAL
-      );
+    state = structuredClone(INITIAL);
 
     save();
 
     go("home");
 
   }
-
 }
 
 
-/* =========================================================
-   EXPONER FUNCIONES
-========================================================= */
+/* =========================
+   VARIABLES GLOBALES
+========================= */
 
-window.go =
-  function (s) {
+window.go = function(s){
+  screen = s;
+  render();
+};
 
-    screen = s;
+window.saveSale = saveSale;
+window.savePurchase = savePurchase;
+window.saveSettings = saveSettings;
+window.goalModal = goalModal;
+window.closeModal = closeModal;
+window.resetData = resetData;
+window.exportData = exportData;
+window.importData = importData;
 
-    render();
+window.calcMode = "business";
+window.calcDisplay = "0";
+window.calcPrev = null;
+window.calcOp = null;
+window.calcFresh = false;
 
-  };
-
-
-window.saveSale =
-  saveSale;
-
-window.savePurchase =
-  savePurchase;
-
-window.saveSettings =
-  saveSettings;
-
-window.goalModal =
-  goalModal;
-
-window.closeModal =
-  closeModal;
-
-window.resetData =
-  resetData;
-
-window.exportData =
-  exportData;
-
-window.importData =
-  importData;
+window.calcB = 35;
+window.calcP = state.settings.defaultPrice;
+window.calcC = "";
+window.calcE = 0;
 
 
-/* =========================================================
-   VARIABLES CALCULADORA
-========================================================= */
+/* =========================
+   CALCULADORA
+========================= */
 
-window.calcMode =
-  "business";
+function calcPress(k){
 
-window.calcDisplay =
-  "0";
+  if(k==="C"){
 
-window.calcPrev =
-  null;
-
-window.calcOp =
-  null;
-
-window.calcFresh =
-  false;
-
-window.calcB =
-  35;
-
-window.calcP =
-  state.settings.defaultPrice;
-
-window.calcC =
-  "";
-
-window.calcE =
-  0;
-
-
-/* =========================================================
-   CALCULADORA BÁSICA
-========================================================= */
-
-function calcPress(k) {
-
-  if (k === "C") {
-
-    window.calcDisplay =
-      "0";
-
-    window.calcPrev =
-      null;
-
-    window.calcOp =
-      null;
-
-    window.calcFresh =
-      false;
+    calcDisplay="0";
+    calcPrev=null;
+    calcOp=null;
+    calcFresh=false;
 
   }
 
+  else if(k==="%"){
 
-  else if (k === "%") {
-
-    window.calcDisplay =
-      String(
-        Number(
-          window.calcDisplay
-        ) / 100
-      );
+    calcDisplay =
+      String(+calcDisplay/100);
 
   }
 
+  else if(["+","−","×","÷"].includes(k)){
 
-  else if (
-    [
-      "+",
-      "−",
-      "×",
-      "÷"
-    ].includes(k)
-  ) {
-
-    window.calcPrev =
-      Number(
-        window.calcDisplay
-      );
-
-    window.calcOp =
-      k;
-
-    window.calcFresh =
-      true;
+    calcPrev=+calcDisplay;
+    calcOp=k;
+    calcFresh=true;
 
   }
 
+  else if(k==="="){
 
-  else if (k === "=") {
-
-    if (
-      window.calcPrev == null ||
-      !window.calcOp
-    ) {
-
+    if(calcPrev==null || !calcOp){
       return;
-
     }
 
+    const b = +calcDisplay;
 
-    const b =
-      Number(
-        window.calcDisplay
-      );
+    let r =
+      calcOp==="+" ? calcPrev+b :
+      calcOp==="−" ? calcPrev-b :
+      calcOp==="×" ? calcPrev*b :
+      b ? calcPrev/b : 0;
 
+    calcDisplay =
+      String(Number(r.toFixed(8)));
 
-    let r;
-
-
-    if (
-      window.calcOp === "+"
-    ) {
-
-      r =
-        window.calcPrev + b;
-
-    }
-
-
-    else if (
-      window.calcOp === "−"
-    ) {
-
-      r =
-        window.calcPrev - b;
-
-    }
-
-
-    else if (
-      window.calcOp === "×"
-    ) {
-
-      r =
-        window.calcPrev * b;
-
-    }
-
-
-    else {
-
-      r =
-        b
-          ? window.calcPrev / b
-          : 0;
-
-    }
-
-
-    window.calcDisplay =
-      String(
-        Number(
-          r.toFixed(8)
-        )
-      );
-
-
-    window.calcPrev =
-      null;
-
-    window.calcOp =
-      null;
+    calcPrev=null;
+    calcOp=null;
 
   }
 
+  else if(k==="."){
 
-  else if (k === ".") {
-
-    if (
-      !window.calcDisplay.includes(".")
-    ) {
-
-      window.calcDisplay += ".";
-
+    if(!calcDisplay.includes(".")){
+      calcDisplay += ".";
     }
 
   }
 
+  else{
 
-  else {
-
-    window.calcDisplay =
-      window.calcFresh
+    calcDisplay =
+      calcFresh
         ? k
-        : window.calcDisplay === "0"
+        : calcDisplay==="0"
         ? k
-        : window.calcDisplay + k;
+        : calcDisplay+k;
 
-    window.calcFresh =
-      false;
-
+    calcFresh=false;
   }
-
 
   go("calculator");
-
 }
 
-
-window.calcPress =
-  calcPress;
+window.calcPress = calcPress;
 
 
-/* =========================================================
+/* =========================
    RENDER
-========================================================= */
+========================= */
 
-function render() {
+function render(){
 
-  let c;
-
-
-  if (screen === "home") {
-
-    c = home();
-
-  }
-
-  else if (
-    screen === "new-sale"
-  ) {
-
-    c = newSale();
-
-  }
-
-  else if (
-    screen === "new-purchase"
-  ) {
-
-    c = purchase();
-
-  }
-
-  else if (
-    screen === "inventory"
-  ) {
-
-    c = inventory();
-
-  }
-
-  else if (
-    screen === "history"
-  ) {
-
-    c = history();
-
-  }
-
-  else if (
-    screen === "calculator"
-  ) {
-
-    c = calculator();
-
-  }
-
-  else if (
-    screen === "distribution"
-  ) {
-
-    c = distribution();
-
-  }
-
-  else {
-
-    c = settings();
-
-  }
-
+  let c =
+    screen==="home"
+      ? home()
+      : screen==="new-sale"
+      ? newSale()
+      : screen==="new-purchase"
+      ? purchase()
+      : screen==="inventory"
+      ? inventory()
+      : screen==="history"
+      ? history()
+      : screen==="calculator"
+      ? calculator()
+      : screen==="distribution"
+      ? distribution()
+      : settings();
 
   shell(c);
 
-
-  /*
-     Eventos de Nueva Venta
-  */
-
-  if (
-    screen === "new-sale"
-  ) {
+  if(screen==="new-sale"){
 
     const bags =
-      document.querySelector(
-        "#sale-bags"
-      );
+      document.querySelector("#sale-bags");
 
     const price =
-      document.querySelector(
-        "#sale-price"
-      );
+      document.querySelector("#sale-price");
 
-
-    if (bags) {
-
-      bags.addEventListener(
-        "input",
-        updateSale
-      );
-
-    }
-
-
-    if (price) {
-
-      price.addEventListener(
-        "input",
-        updateSale
-      );
-
-    }
-
+    if(bags) bags.addEventListener("input",updateSale);
+    if(price) price.addEventListener("input",updateSale);
 
     updateSale();
-
   }
-
 }
-
-
-/* =========================================================
-   INICIAR APLICACIÓN
-========================================================= */
 
 render();
 
 
-/* =========================================================
-   PWA - DETECTAR DISPOSITIVO
-========================================================= */
+/* ==========================================================
+   INTRO / VIDEO
+========================================================== */
 
-function isMobileDevice() {
-
-  return (
-
-    window.matchMedia(
-      "(max-width:699px)"
-    ).matches
-
-    ||
-
-    /Android|iPhone|iPad|iPod|Mobile/i.test(
-      navigator.userAgent
-    )
-
-  );
-
-}
-
-
-/* =========================================================
-   PWA - INTRO
-========================================================= */
-
-function startIntro() {
-
-  const video =
-    document.querySelector(
-      "#intro-video"
-    );
-
-  const soundButton =
-    document.querySelector(
-      "#intro-sound"
-    );
+function startIntro(){
 
   const splash =
-    document.querySelector(
-      "#splash"
-    );
+    document.querySelector("#splash");
 
+  const v =
+    document.querySelector("#intro-video");
 
-  if (
-    !video ||
-    !splash
-  ) {
+  const soundBtn =
+    document.querySelector("#intro-sound");
 
+  if(!splash || !v){
     return;
-
   }
 
 
-  /*
-     IMPORTANTE:
-
-     Estos archivos deben existir exactamente:
-
-     assets/intro-mobile.mp4
-     assets/intro-desktop.mp4
-  */
-
   const mobile =
-    isMobileDevice();
+    window.matchMedia("(max-width:699px)").matches ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(
+      navigator.userAgent
+    );
 
+
+  /*
+    IMPORTANTE:
+
+    Los archivos deben estar exactamente aquí:
+
+    assets/intro-mobile.mp4
+    assets/intro-desktop.mp4
+  */
 
   const videoPath =
     mobile
       ? "./assets/intro-mobile.mp4"
       : "./assets/intro-desktop.mp4";
 
+  v.src = videoPath;
 
-  video.src =
-    videoPath;
+  v.setAttribute("playsinline","");
+  v.setAttribute("webkit-playsinline","");
 
+  /*
+    Primero intentamos sonido.
+    Si el navegador lo bloquea, mostramos
+    el botón para que el usuario lo active.
+  */
 
-  video.muted =
-    false;
+  v.muted = false;
+  v.volume = 1;
 
-  video.volume =
-    1;
+  let done = false;
 
+  function finish(){
 
-  let finished =
-    false;
+    if(done) return;
 
+    done = true;
 
-  /* ==========================================
-     FINALIZAR INTRO
-  ========================================== */
+    splash.classList.add("splash-hide");
 
-  function finishIntro() {
-
-    if (finished) {
-      return;
-    }
-
-
-    finished =
-      true;
-
-
-    splash.style.transition =
-      "opacity .35s ease";
-
-
-    splash.style.opacity =
-      "0";
-
-
-    setTimeout(
-      () => {
-
-        splash.remove();
-
-      },
-      350
-    );
-
+    setTimeout(()=>{
+      splash.remove();
+    },400);
   }
 
 
-  /* ==========================================
-     BOTÓN SONIDO
-  ========================================== */
+  function showSoundButton(){
 
-  function showSoundButton() {
+    if(!soundBtn || done) return;
 
-    if (
-      !soundButton ||
-      finished
-    ) {
-
-      return;
-
-    }
-
-
-    soundButton.classList.add(
-      "show"
-    );
-
+    soundBtn.classList.add("show");
   }
 
 
-  function hideSoundButton() {
+  function hideSoundButton(){
 
-    if (!soundButton) {
-      return;
-    }
+    if(!soundBtn) return;
 
-
-    soundButton.classList.remove(
-      "show"
-    );
-
+    soundBtn.classList.remove("show");
   }
 
 
-  /* ==========================================
-     REPRODUCIR VIDEO
-  ========================================== */
+  function playVideo(){
 
-  function playVideo() {
+    v.muted = false;
+    v.volume = 1;
 
-    video.muted =
-      false;
+    const promise = v.play();
 
-    video.volume =
-      1;
-
-
-    const promise =
-      video.play();
-
-
-    if (
-      promise &&
-      typeof promise.catch ===
-        "function"
-    ) {
+    if(promise){
 
       promise
-        .then(() => {
-
+        .then(()=>{
           hideSoundButton();
-
         })
+        .catch(()=>{
 
-        .catch(() => {
+          /*
+            Algunos navegadores bloquean autoplay
+            con sonido.
+          */
 
-          showSoundButton();
+          v.muted = true;
+
+          const mutedPlay = v.play();
+
+          if(mutedPlay){
+
+            mutedPlay
+              .then(()=>{
+                showSoundButton();
+              })
+              .catch(()=>{
+                showSoundButton();
+              });
+
+          }else{
+
+            showSoundButton();
+
+          }
 
         });
 
@@ -3428,630 +2007,299 @@ function startIntro() {
   }
 
 
-  /* ==========================================
-     BOTÓN PARA ACTIVAR SONIDO
-  ========================================== */
+  if(soundBtn){
 
-  if (soundButton) {
+    soundBtn.addEventListener("click",()=>{
 
-    soundButton.addEventListener(
-      "click",
-      () => {
+      v.muted = false;
+      v.volume = 1;
 
-        video.muted =
-          false;
+      const promise = v.play();
 
-        video.volume =
-          1;
+      if(promise){
 
-
-        const promise =
-          video.play();
-
-
-        if (
-          promise &&
-          typeof promise.then ===
-            "function"
-        ) {
-
-          promise
-            .then(() => {
-
-              hideSoundButton();
-
-            })
-
-            .catch(() => {
-
-              showSoundButton();
-
-            });
-
-        }
+        promise
+          .then(()=>{
+            hideSoundButton();
+          })
+          .catch(()=>{
+            showSoundButton();
+          });
 
       }
-    );
+
+    });
 
   }
 
 
-  /* ==========================================
-     VIDEO TERMINADO
-  ========================================== */
-
-  video.addEventListener(
+  v.addEventListener(
     "ended",
-    finishIntro,
-    {
-      once: true
-    }
+    finish,
+    {once:true}
   );
 
 
-  /* ==========================================
-     ERROR DEL VIDEO
-  ========================================== */
-
-  video.addEventListener(
+  v.addEventListener(
     "error",
-    () => {
+    ()=>{
 
-      console.error(
-        "No se pudo cargar el video:",
-        video.src
-      );
-
+      /*
+        Si el MP4 no existe, mostramos
+        la pantalla alternativa y continuamos.
+      */
 
       const fallback =
-        document.querySelector(
-          ".splash-fallback"
-        );
+        document.querySelector(".splash-fallback");
 
-
-      if (fallback) {
-
-        fallback.style.display =
-          "flex";
-
+      if(fallback){
+        fallback.style.display = "flex";
       }
 
-
-      if (soundButton) {
-
-        soundButton.classList.remove(
-          "show"
-        );
-
+      if(soundBtn){
+        soundBtn.classList.remove("show");
       }
 
-
-      setTimeout(
-        finishIntro,
-        1600
-      );
+      setTimeout(finish,1800);
 
     },
-    {
-      once: true
-    }
-  );
-
-
-  /* ==========================================
-     VIDEO CARGADO
-  ========================================== */
-
-  video.addEventListener(
-    "loadeddata",
-    () => {
-
-      playVideo();
-
-    },
-    {
-      once: true
-    }
+    {once:true}
   );
 
 
   /*
-     Intento inicial.
+    Seguridad:
+    si el video tarda demasiado en cargar,
+    no dejamos la app bloqueada.
   */
+
+  setTimeout(()=>{
+
+    if(!done && v.readyState === 0){
+
+      const fallback =
+        document.querySelector(".splash-fallback");
+
+      if(fallback){
+        fallback.style.display="flex";
+      }
+
+      setTimeout(finish,1200);
+
+    }
+
+  },8000);
+
 
   playVideo();
-
 }
 
 
-/* =========================================================
-   PWA - INSTALACIÓN
-========================================================= */
+/* ==========================================================
+   INSTALACIÓN PWA
+========================================================== */
 
-let deferredInstallPrompt =
-  null;
+let deferredInstallPrompt = null;
 
 
-/* =========================================================
-   CREAR BOTÓN DE INSTALACIÓN
-========================================================= */
+function setupPWAInstall(){
 
-function createInstallButton() {
+  const installButton =
+    document.querySelector("#install-app");
 
   /*
-     Si ya está instalada como aplicación,
-     no mostramos el botón.
+    Android / Chrome / Edge
   */
-
-  if (
-    window.matchMedia(
-      "(display-mode: standalone)"
-    ).matches
-    ||
-    window.navigator.standalone === true
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    document.querySelector(
-      "#install-app"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.id =
-    "install-app";
-
-
-  button.className =
-    "install-app-button";
-
-
-  button.type =
-    "button";
-
-
-  button.innerHTML =
-    "📲 <span>Instalar GummyWare</span>";
-
-
-  button.addEventListener(
-    "click",
-    installGummyWare
-  );
-
-
-  document.body.appendChild(
-    button
-  );
-
-}
-
-
-/* =========================================================
-   MOSTRAR BOTÓN INSTALAR
-========================================================= */
-
-function showInstallButton() {
-
-  createInstallButton();
-
-
-  const button =
-    document.querySelector(
-      "#install-app"
-    );
-
-
-  if (button) {
-
-    button.style.display =
-      "flex";
-
-  }
-
-}
-
-
-/* =========================================================
-   OCULTAR BOTÓN
-========================================================= */
-
-function hideInstallButton() {
-
-  const button =
-    document.querySelector(
-      "#install-app"
-    );
-
-
-  if (button) {
-
-    button.remove();
-
-  }
-
-}
-
-
-/* =========================================================
-   CHROME / EDGE
-========================================================= */
-
-window.addEventListener(
-  "beforeinstallprompt",
-  event => {
-
-    /*
-       Evita el aviso automático.
-    */
-
-    event.preventDefault();
-
-
-    deferredInstallPrompt =
-      event;
-
-
-    /*
-       Ahora nuestro botón
-       sí puede abrir el instalador.
-    */
-
-    showInstallButton();
-
-  }
-);
-
-
-/* =========================================================
-   INSTALAR GUMMYWARE
-========================================================= */
-
-async function installGummyWare() {
-
-  /*
-     Chrome / Edge / Android
-  */
-
-  if (
-    deferredInstallPrompt
-  ) {
-
-    deferredInstallPrompt.prompt();
-
-
-    try {
-
-      const result =
-        await deferredInstallPrompt.userChoice;
-
-
-      if (
-        result.outcome ===
-        "accepted"
-      ) {
-
-        deferredInstallPrompt =
-          null;
-
-        hideInstallButton();
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Error al instalar:",
-        error
-      );
-
-    }
-
-
-    return;
-
-  }
-
-
-  /*
-     iPhone / iPad
-  */
-
-  const ios =
-    /iPhone|iPad|iPod/i.test(
-      navigator.userAgent
-    );
-
-
-  if (ios) {
-
-    showIOSInstallInstructions();
-
-    return;
-
-  }
-
-
-  /*
-     Otros navegadores.
-  */
-
-  alert(
-    "Para instalar GummyWare:\n\n" +
-    "Abre el menú de tu navegador y selecciona " +
-    "\"Instalar aplicación\" o " +
-    "\"Agregar a pantalla de inicio\"."
-  );
-
-}
-
-
-/* =========================================================
-   INSTRUCCIONES IOS
-========================================================= */
-
-function showIOSInstallInstructions() {
-
-  let modal =
-    document.querySelector(
-      "#ios-install-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.add(
-      "show"
-    );
-
-    return;
-
-  }
-
-
-  modal =
-    document.createElement(
-      "div"
-    );
-
-
-  modal.id =
-    "ios-install-modal";
-
-
-  modal.className =
-    "ios-install-modal";
-
-
-  modal.innerHTML = `
-
-    <div class="ios-install-box">
-
-      <button
-        class="ios-close"
-        type="button"
-        aria-label="Cerrar"
-      >
-        ×
-      </button>
-
-
-      <div class="ios-install-icon">
-        📲
-      </div>
-
-
-      <h2>
-        Instalar GummyWare
-      </h2>
-
-
-      <p>
-        Para instalar GummyWare
-        en tu iPhone o iPad:
-      </p>
-
-
-      <ol>
-
-        <li>
-          Pulsa el botón
-          <strong>Compartir</strong>
-          de Safari.
-        </li>
-
-
-        <li>
-          Selecciona
-          <strong>
-            Agregar a pantalla de inicio
-          </strong>.
-        </li>
-
-
-        <li>
-          Pulsa
-          <strong>Agregar</strong>.
-        </li>
-
-      </ol>
-
-
-      <button
-        class="ios-ok"
-        type="button"
-      >
-        Entendido
-      </button>
-
-    </div>
-
-  `;
-
-
-  document.body.appendChild(
-    modal
-  );
-
-
-  modal
-    .querySelector(
-      ".ios-close"
-    )
-    .addEventListener(
-      "click",
-      () => {
-
-        modal.classList.remove(
-          "show"
-        );
-
-      }
-    );
-
-
-  modal
-    .querySelector(
-      ".ios-ok"
-    )
-    .addEventListener(
-      "click",
-      () => {
-
-        modal.classList.remove(
-          "show"
-        );
-
-      }
-    );
-
-
-  setTimeout(
-    () => {
-
-      modal.classList.add(
-        "show"
-      );
-
-    },
-    10
-  );
-
-}
-
-
-/* =========================================================
-   APP YA INSTALADA
-========================================================= */
-
-window.addEventListener(
-  "appinstalled",
-  () => {
-
-    deferredInstallPrompt =
-      null;
-
-    hideInstallButton();
-
-  }
-);
-
-
-/* =========================================================
-   MOSTRAR BOTÓN EN DISPOSITIVOS
-========================================================= */
-
-function prepareInstallButton() {
-
-  /*
-     Si ya está instalada,
-     no hacemos nada.
-  */
-
-  if (
-    window.matchMedia(
-      "(display-mode: standalone)"
-    ).matches
-    ||
-    window.navigator.standalone === true
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-     Creamos el botón.
-
-     En Android/Chrome,
-     posteriormente beforeinstallprompt
-     permitirá instalar directamente.
-
-     En iPhone,
-     abre instrucciones.
-  */
-
-  showInstallButton();
-
-}
-
-
-/* =========================================================
-   SERVICE WORKER
-========================================================= */
-
-if (
-  "serviceWorker" in navigator
-) {
 
   window.addEventListener(
-    "load",
-    async () => {
+    "beforeinstallprompt",
+    e=>{
 
-      try {
+      e.preventDefault();
 
-        const registration =
-          await navigator.serviceWorker.register(
-            "./sw.js"
-          );
+      deferredInstallPrompt = e;
+
+      if(installButton){
+
+        installButton.style.display = "flex";
+
+      }
+
+    }
+  );
+
+
+  /*
+    Usuario instala la aplicación
+  */
+
+  window.addEventListener(
+    "appinstalled",
+    ()=>{
+
+      deferredInstallPrompt = null;
+
+      if(installButton){
+        installButton.style.display = "none";
+      }
+
+      toast("GummyWare instalada correctamente 🍬");
+
+    }
+  );
+
+
+  /*
+    iPhone / iPad
+  */
+
+  const isIOS =
+    /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const isStandalone =
+    window.navigator.standalone === true ||
+    window.matchMedia(
+      "(display-mode: standalone)"
+    ).matches;
+
+
+  if(
+    isIOS &&
+    !isStandalone &&
+    installButton
+  ){
+
+    installButton.style.display = "flex";
+
+    installButton.textContent =
+      "📲 Cómo instalar GummyWare";
+
+  }
+
+
+  /*
+    Botón de instalación
+  */
+
+  if(installButton){
+
+    installButton.addEventListener(
+      "click",
+      async ()=>{
+
+        /*
+          Android / Chrome / Edge
+        */
+
+        if(deferredInstallPrompt){
+
+          deferredInstallPrompt.prompt();
+
+          const choice =
+            await deferredInstallPrompt.userChoice;
+
+          if(choice.outcome==="accepted"){
+            toast("Instalando GummyWare...");
+          }
+
+          deferredInstallPrompt = null;
+
+          installButton.style.display="none";
+
+          return;
+        }
 
 
         /*
-           Buscar inmediatamente
-           una nueva versión.
+          iPhone / iPad
         */
 
-        await registration.update();
+        if(isIOS){
+
+          modal(`
+
+            <h2>Instalar GummyWare 📲</h2>
+
+            <p class="install-text">
+
+              En tu iPhone o iPad:
+
+            </p>
+
+            <div class="install-step">
+              <b>1.</b>
+              Toca el botón
+              <b>Compartir</b>
+              de Safari.
+            </div>
+
+            <div class="install-step">
+              <b>2.</b>
+              Busca
+              <b>“Agregar a pantalla de inicio”</b>.
+            </div>
+
+            <div class="install-step">
+              <b>3.</b>
+              Toca
+              <b>Agregar</b>.
+            </div>
+
+            <button
+              class="primary full"
+              onclick="closeModal()"
+            >
+              Entendido
+            </button>
+
+          `);
+
+          return;
+        }
 
 
-        console.log(
-          "GummyWare Service Worker activo"
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Error Service Worker:",
-          error
+        toast(
+          "Para instalarla, usa el menú de tu navegador."
         );
 
       }
+    );
+
+  }
+
+
+  /*
+    Si ya está instalada como PWA,
+    ocultamos el botón.
+  */
+
+  if(isStandalone && installButton){
+
+    installButton.style.display = "none";
+
+  }
+
+}
+
+
+/* ==========================================================
+   SERVICE WORKER
+========================================================== */
+
+if("serviceWorker" in navigator){
+
+  window.addEventListener(
+    "load",
+    ()=>{
+
+      navigator.serviceWorker
+        .register("./sw.js")
+        .catch(err=>{
+          console.warn(
+            "Service Worker:",
+            err
+          );
+        });
 
     }
   );
@@ -4059,19 +2307,17 @@ if (
 }
 
 
-/* =========================================================
-   INICIAR PWA
-========================================================= */
+/* ==========================================================
+   INICIAR
+========================================================== */
 
-startIntro();
+window.addEventListener(
+  "DOMContentLoaded",
+  ()=>{
 
+    startIntro();
 
-/*
-   Esperamos un momento para no
-   interferir con la carga inicial.
-*/
+    setupPWAInstall();
 
-setTimeout(
-  prepareInstallButton,
-  1200
+  }
 );
