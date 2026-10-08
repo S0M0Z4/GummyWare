@@ -20,3 +20,39 @@
   box-shadow:0 6px 24px #0005;
 }
 .intro-sound.show{display:block}
+
+/* Calculadora: columna derecha exclusiva para operaciones */
+.calculator-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-auto-rows:56px;
+  gap:8px;
+}
+.calculator-key{
+  width:100%;
+  height:100%;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:900;
+  line-height:1;
+}
+.calculator-key.number{
+  background:#fff;
+  color:#171720;
+  border:1px solid #EBEBF0;
+}
+.calculator-key.operation{
+  background:#FFF0F3;
+  color:#FF758F;
+}
+.calculator-key.function{
+  background:#F0EFF2;
+  color:#7B7B8D;
+}
+.calculator-key.equals{
+  background:#FF758F;
+  color:#fff;
+}
