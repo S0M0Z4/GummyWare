@@ -85,6 +85,74 @@ window.calcPress=calcPress;
 function render(){let c=screen==="home"?home():screen==="new-sale"?newSale():screen==="new-purchase"?purchase():screen==="inventory"?inventory():screen==="history"?history():screen==="calculator"?calculator():screen==="distribution"?distribution():settings();shell(c);if(screen==="new-sale"){document.querySelector("#sale-bags").addEventListener("input",updateSale);document.querySelector("#sale-price").addEventListener("input",updateSale);updateSale()}}
 render();
 
-function startIntro(){const v=document.querySelector("#intro-video");const mobile=matchMedia("(max-width:699px)").matches||/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);v.src=mobile?"assets/intro-mobile.mp4":"assets/intro-desktop.mp4";let done=false;const finish=()=>{if(done)return;done=true;const s=document.querySelector("#splash");s.style.transition="opacity .35s";s.style.opacity="0";setTimeout(()=>s.remove(),350)};v.addEventListener("ended",finish,{once:true});v.addEventListener("error",()=>{document.querySelector(".splash-fallback").style.display="flex";setTimeout(finish,1600)},{once:true});setTimeout(finish,15000);v.play().catch(()=>{})}
+function startIntro(){
+  const v=document.querySelector("#intro-video");
+  const soundBtn=document.querySelector("#intro-sound");
+  const mobile=matchMedia("(max-width:699px)").matches||/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  v.src=mobile?"assets/intro-mobile.mp4":"assets/intro-desktop.mp4";
+  v.muted=false;
+  v.volume=1;
+
+  let done=false;
+  let soundPrompt=false;
+
+  const finish=()=>{
+    if(done)return;
+    done=true;
+    const s=document.querySelector("#splash");
+    s.style.transition="opacity .35s";
+    s.style.opacity="0";
+    setTimeout(()=>s.remove(),350);
+  };
+
+  const showSoundButton=()=>{
+    if(soundPrompt || done)return;
+    soundPrompt=true;
+    soundBtn.classList.add("show");
+  };
+
+  const hideSoundButton=()=>{
+    soundBtn.classList.remove("show");
+  };
+
+  const playWithSound=()=>{
+    v.muted=false;
+    v.volume=1;
+    const p=v.play();
+    if(p && typeof p.catch==="function"){
+      p.then(()=>{
+        hideSoundButton();
+      }).catch(()=>{
+        showSoundButton();
+      });
+    }
+  };
+
+  soundBtn.addEventListener("click",()=>{
+    v.muted=false;
+    v.volume=1;
+    const p=v.play();
+    if(p && typeof p.then==="function"){
+      p.then(()=>{
+        hideSoundButton();
+        soundPrompt=false;
+      }).catch(()=>{
+        showSoundButton();
+      });
+    }
+  });
+
+  v.addEventListener("ended",finish,{once:true});
+  v.addEventListener("error",()=>{
+    document.querySelector(".splash-fallback").style.display="flex";
+    soundBtn.classList.remove("show");
+    setTimeout(finish,1600);
+  },{once:true});
+
+  // Intentar autoplay con audio. Chrome puede bloquearlo hasta que el usuario toque.
+  playWithSound();
+}
+
+
 if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 startIntro();

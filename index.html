@@ -12,7 +12,10 @@
 </head>
 <body>
 <div id="splash" class="splash">
-  <video id="intro-video" autoplay muted playsinline></video>
+  <video id="intro-video" autoplay playsinline preload="auto"></video>
+  <button id="intro-sound" class="intro-sound" type="button" aria-label="Iniciar video con sonido">
+    🔊 Tocar para iniciar con sonido
+  </button>
   <div class="splash-fallback">
     <img src="icons/icon-512.png" alt="GummyWare">
     <strong>GummyWare</strong><span>Compila tu Antojo</span>
