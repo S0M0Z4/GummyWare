@@ -2,20 +2,30 @@
 
 :root{
   --bg:#F8F7F9;
-  --card:#FFF;
+  --card:#FFFFFF;
+
   --pink:#FF758F;
   --pink-dark:#E5607A;
   --pink-soft:#FFF0F3;
+
   --text:#171720;
   --muted:#7B7B8D;
+
   --border:#EBEBF0;
+
   --green:#16A34A;
   --green-bg:#DCFCE7;
+
   --red:#DC2626;
   --red-bg:#FEE2E2;
+
   --yellow:#D97706;
   --yellow-bg:#FEF3C7;
 }
+
+/* =========================================================
+   BASE
+========================================================= */
 
 *{
   box-sizing:border-box;
@@ -29,11 +39,25 @@ body,
   min-height:100%;
 }
 
+html{
+  background:#E5E5EB;
+}
+
 body{
-  font-family:Nunito,system-ui,sans-serif;
+  min-height:100dvh;
+  font-family:
+    Nunito,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
   background:#E5E5EB;
   color:var(--text);
+
   -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
 }
 
 button,
@@ -43,30 +67,48 @@ select{
 }
 
 button{
-  -webkit-tap-highlight-color:transparent;
-  cursor:pointer;
   border:0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
 
+input,
+select{
+  outline:none;
+}
 
-/* ==========================================================
+/* =========================================================
    APP
-========================================================== */
+========================================================= */
 
 .app-shell{
   width:100%;
+  max-width:430px;
+
   height:100dvh;
   min-height:100dvh;
-  margin:auto;
+
+  margin:0 auto;
+
   background:var(--bg);
+
   position:relative;
+
   overflow:hidden;
+
+  box-shadow:
+    0 0 40px #0000001f;
 }
 
 .screen-content{
+  width:100%;
   height:100%;
-  overflow:auto;
-  padding-bottom:95px;
+
+  overflow-y:auto;
+  overflow-x:hidden;
+
+  padding-bottom:92px;
+
   scrollbar-width:none;
 }
 
@@ -74,77 +116,116 @@ button{
   display:none;
 }
 
-.px{
-  padding-left:20px;
-  padding-right:20px;
-}
-
-
-/* ==========================================================
+/* =========================================================
    HEADER
-========================================================== */
+========================================================= */
 
 .header{
-  padding:48px 20px 14px;
+  padding:
+    48px
+    20px
+    16px;
 }
 
 .header h1{
   margin:0;
+
   font-size:24px;
-  font-weight:900;
   line-height:1.1;
+
+  font-weight:900;
 }
 
 .header p{
-  margin:4px 0 0;
+  margin:5px 0 0;
+
   color:var(--muted);
+
   font-size:14px;
   font-weight:600;
 }
 
 .back-button{
-  margin-bottom:8px;
-  padding-left:0;
+  margin-bottom:4px;
 }
 
+/* =========================================================
+   CONTENEDOR
+========================================================= */
 
-/* ==========================================================
+.px{
+  padding-left:20px;
+  padding-right:20px;
+}
+
+/* =========================================================
    CARDS
-========================================================== */
+========================================================= */
 
 .card{
-  background:#fff;
+  background:var(--card);
+
   border-radius:20px;
+
   padding:20px;
-  box-shadow:0 1px 4px #00000012;
+
   margin-bottom:14px;
+
+  box-shadow:
+    0 1px 4px #00000012;
 }
 
 .grid2{
   display:grid;
-  grid-template-columns:1fr 1fr;
+
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+
   gap:10px;
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:12px;
 }
 
 .stat-label{
   font-size:11px;
+
   font-weight:800;
+
   color:var(--muted);
+
   text-transform:uppercase;
+
   letter-spacing:.06em;
 }
 
 .stat-value{
-  font-size:24px;
-  font-weight:900;
-  line-height:1;
   margin-top:7px;
+
+  font-size:24px;
+
+  line-height:1;
+
+  font-weight:900;
 }
 
-.stat-big{
-  font-size:28px;
-  font-weight:900;
+.big-number{
   margin-top:7px;
+
+  font-size:28px;
+
+  line-height:1;
+
+  font-weight:900;
+}
+
+.stat-foot{
+  margin-top:6px;
 }
 
 .muted{
@@ -155,57 +236,65 @@ button{
   font-size:12px;
 }
 
-.row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
-
-
-/* ==========================================================
-   BUTTONS
-========================================================== */
+/* =========================================================
+   BOTONES
+========================================================= */
 
 .primary,
 .secondary,
 .ghost,
 .danger{
   border-radius:16px;
+
   font-weight:800;
+
   display:inline-flex;
+
   align-items:center;
   justify-content:center;
+
   gap:7px;
-  transition:.15s;
+
+  transition:
+    transform .15s ease,
+    opacity .15s ease;
+}
+
+.primary:active,
+.secondary:active,
+.danger:active{
+  transform:scale(.98);
 }
 
 .primary{
   background:var(--pink);
   color:#fff;
-  padding:14px 18px;
-  box-shadow:0 4px 14px #ff758f66;
-}
 
-.primary:hover{
-  background:var(--pink-dark);
+  padding:14px 18px;
+
+  box-shadow:
+    0 4px 14px #ff758f66;
 }
 
 .secondary{
   background:var(--pink-soft);
   color:var(--pink);
+
   padding:12px 16px;
 }
 
 .ghost{
   background:transparent;
+
   color:var(--muted);
+
   padding:10px;
 }
 
 .danger{
   background:var(--red-bg);
   color:var(--red);
+
   padding:13px 16px;
 }
 
@@ -213,15 +302,16 @@ button{
   width:100%;
 }
 
-
-/* ==========================================================
-   FORMULARIOS
-========================================================== */
+/* =========================================================
+   CAMPOS
+========================================================= */
 
 .field{
   display:flex;
   flex-direction:column;
+
   gap:6px;
+
   margin-bottom:14px;
 }
 
@@ -231,133 +321,196 @@ button{
 }
 
 .input{
-  height:52px;
   width:100%;
-  border:1px solid var(--border);
+  height:52px;
+
+  border:
+    1px solid
+    var(--border);
+
   background:#F8F7F9;
+
   border-radius:16px;
-  padding:0 15px;
-  outline:none;
+
+  padding:
+    0 15px;
+
   color:var(--text);
+
   font-weight:700;
 }
 
 .input:focus{
   border-color:var(--pink);
-  box-shadow:0 0 0 3px #ff758f1c;
+  box-shadow:
+    0 0 0 3px
+    #ff758f22;
 }
 
+/* =========================================================
+   PROGRESO
+========================================================= */
 
-/* ==========================================================
-   META
-========================================================== */
-
-.progress{
-  height:8px;
-  background:#F0EFF2;
-  border-radius:99px;
-  overflow:hidden;
-}
-
-.progress>div{
-  height:100%;
-  background:var(--pink);
-  border-radius:99px;
-}
-
-.goal-area{
+.progress-wrap{
   margin-top:16px;
 }
 
-.goal-area .row{
+.progress{
+  width:100%;
+  height:8px;
+
+  background:#F0EFF2;
+
+  border-radius:99px;
+
+  overflow:hidden;
+}
+
+.progress > div{
+  height:100%;
+
+  background:var(--pink);
+
+  border-radius:99px;
+
+  transition:width .3s ease;
+}
+
+.progress-info{
   margin-top:7px;
 }
 
 .goal-reached{
   margin-top:16px;
+
   background:#FFF0F3;
+
   border-radius:16px;
+
   padding:13px;
-  color:#FF758F;
+
+  color:var(--pink);
+
   font-weight:900;
+
   text-align:center;
 }
 
 .goal-reached span{
-  font-size:13px;
   color:var(--text);
+  font-size:13px;
 }
 
-
-/* ==========================================================
+/* =========================================================
    LISTAS
-========================================================== */
-
-.list-item{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:15px 20px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.list-icon{
-  width:40px;
-  min-width:40px;
-  height:40px;
-  border-radius:14px;
-  background:var(--pink-soft);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.transaction-info{
-  flex:1;
-  min-width:0;
-}
-
-.transaction-info b{
-  display:block;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.recent-item{
-  margin-left:-20px;
-  margin-right:-20px;
-}
+========================================================= */
 
 .section-head{
   display:flex;
+
   align-items:center;
   justify-content:space-between;
-  padding:12px 20px 10px;
+
+  padding:
+    12px
+    20px
+    10px;
 }
 
 .section-head h2{
-  font-size:16px;
   margin:0;
+
+  font-size:16px;
+
   font-weight:900;
 }
 
 .section-head button{
   background:none;
+
   color:var(--pink);
+
   font-weight:800;
 }
 
+.list-item{
+  min-width:0;
 
-/* ==========================================================
+  background:#fff;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  padding:
+    15px
+    20px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+}
+
+.list-item:last-child{
+  border-bottom:0;
+}
+
+.list-icon{
+  flex:0 0 40px;
+
+  width:40px;
+  height:40px;
+
+  border-radius:14px;
+
+  background:var(--pink-soft);
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+}
+
+.list-main{
+  flex:1;
+  min-width:0;
+}
+
+.list-main b{
+  display:block;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+}
+
+.amount-positive{
+  color:var(--green);
+}
+
+.amount-negative{
+  color:var(--red);
+}
+
+/* =========================================================
    BADGES
-========================================================== */
+========================================================= */
 
 .badge{
   display:inline-flex;
-  padding:5px 9px;
+
+  padding:
+    5px
+    9px;
+
   border-radius:99px;
+
   font-size:11px;
+
   font-weight:900;
 }
 
@@ -381,100 +534,21 @@ button{
   color:var(--muted);
 }
 
+/* =========================================================
+   INVENTARIO
+========================================================= */
 
-/* ==========================================================
-   BOTTOM NAV
-========================================================== */
-
-.bottom-nav{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:0;
-  height:72px;
-  background:#fff;
-  border-top:1px solid var(--border);
-  display:flex;
-  z-index:50;
-  padding-bottom:env(safe-area-inset-bottom);
+.inventory-card{
+  padding:0;
+  overflow:hidden;
 }
 
-.nav-item{
-  flex:1;
-  background:none;
-  color:#C4C4CE;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:3px;
-  font-size:10px;
-  font-weight:800;
+.inventory-right{
+  text-align:right;
 }
 
-.nav-item.active{
-  color:var(--pink);
-}
-
-.nav-symbol{
-  font-size:19px;
-  line-height:1;
-}
-
-.fab-wrap{
-  flex:1;
-  display:flex;
-  justify-content:center;
-}
-
-.fab{
-  width:56px;
-  height:56px;
-  border-radius:18px;
-  background:var(--pink);
-  color:#fff;
-  margin-top:-17px;
-  box-shadow:0 6px 20px #ff758f80;
-  font-size:28px;
-}
-
-
-/* ==========================================================
-   NUEVA VENTA
-========================================================== */
-
-.sale-cost-box{
-  background:#F8F7F9;
-  border-radius:18px;
-  padding:18px;
-  margin-top:15px;
-}
-
-.sale-cost{
-  font-size:20px;
-  font-weight:900;
-  margin-top:6px;
-}
-
-.sale-summary{
-  margin-top:18px;
-}
-
-.summary-row{
-  margin-top:9px;
-}
-
-
-/* ==========================================================
-   INFO
-========================================================== */
-
-.info-box{
-  background:#FFF0F3;
-  border-radius:16px;
-  padding:13px;
-  font-size:12px;
-  color:var(--muted);
+.inventory-right .badge{
+  margin-top:4px;
 }
 
 .stock-warning{
@@ -486,137 +560,544 @@ button{
   margin-top:4px;
 }
 
-.inventory-card,
-.history-card{
-  padding:0;
-  overflow:hidden;
+/* =========================================================
+   HOME
+========================================================= */
+
+.home-actions{
+  margin-top:14px;
 }
 
-.inventory-right{
-  text-align:right;
-  white-space:nowrap;
+.home-actions .secondary{
+  margin-top:10px;
 }
 
-
-/* ==========================================================
-   CALCULADORA
-========================================================== */
-
-.calc-tabs{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  background:#F0EFF2;
-  padding:4px;
-  border-radius:14px;
-  margin-bottom:15px;
+.welcome-card{
+  text-align:center;
 }
 
-.calc-tabs button{
-  background:transparent;
+.welcome-icon{
+  font-size:34px;
+  margin-bottom:6px;
+}
+
+/* =========================================================
+   COMPRA / VENTA
+========================================================= */
+
+.calculation-box{
+  background:#F8F7F9;
+
+  border-radius:18px;
+
+  padding:18px;
+
+  margin-top:15px;
+}
+
+.calculation-value{
+  margin-top:6px;
+
+  font-size:20px;
+
+  font-weight:900;
+}
+
+.sale-summary{
+  margin-top:18px;
+}
+
+.summary-row{
+  margin-top:9px;
+}
+
+.info-box{
+  background:#FFF0F3;
+
+  border-radius:16px;
+
+  padding:13px;
+
+  font-size:12px;
+
   color:var(--muted);
-  border-radius:11px;
-  padding:10px;
+}
+
+/* =========================================================
+   NAVEGACIÓN INFERIOR
+========================================================= */
+
+.bottom-nav{
+  position:absolute;
+
+  left:0;
+  right:0;
+  bottom:0;
+
+  height:72px;
+
+  background:#fff;
+
+  border-top:
+    1px solid
+    var(--border);
+
+  display:flex;
+
+  z-index:50;
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+}
+
+.nav-item{
+  flex:1;
+
+  min-width:0;
+
+  background:none;
+
+  color:#C4C4CE;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:3px;
+
+  font-size:10px;
+
   font-weight:800;
 }
 
-.calc-tabs button.active{
-  background:#fff;
+.nav-item.active{
   color:var(--pink);
-  box-shadow:0 1px 4px #00000010;
+}
+
+.nav-icon{
+  font-size:20px;
+  line-height:20px;
+}
+
+.fab-wrap{
+  flex:1;
+
+  display:flex;
+
+  justify-content:center;
+}
+
+.fab{
+  width:56px;
+  height:56px;
+
+  border-radius:18px;
+
+  background:var(--pink);
+
+  color:#fff;
+
+  margin-top:-17px;
+
+  box-shadow:
+    0 6px 20px #ff758f80;
+
+  font-size:28px;
+}
+
+/* =========================================================
+   INSTALAR
+========================================================= */
+
+.install-card{
+  width:100%;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  background:#FFF0F3;
+
+  border:
+    1px solid
+    #FFD5DE;
+
+  border-radius:20px;
+
+  padding:15px;
+
+  margin-bottom:14px;
+}
+
+.install-icon{
+  width:44px;
+  height:44px;
+
+  flex:0 0 44px;
+
+  border-radius:14px;
+
+  background:#fff;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  font-size:22px;
+}
+
+.install-content{
+  flex:1;
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:2px;
+}
+
+.install-title{
+  font-size:14px;
+  font-weight:900;
+}
+
+.install-hint{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.install-button{
+  flex:0 0 auto;
+
+  background:var(--pink);
+
+  color:#fff;
+
+  padding:
+    10px
+    13px;
+
+  border-radius:13px;
+
+  font-size:12px;
+
+  font-weight:900;
+}
+
+.install-steps{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:12px;
+
+  margin:
+    15px
+    0
+    20px;
+}
+
+.install-steps > div{
+  background:#F8F7F9;
+
+  border-radius:14px;
+
+  padding:14px;
+
+  font-size:14px;
+
+  line-height:1.45;
+}
+
+/* =========================================================
+   MÁS / AJUSTES
+========================================================= */
+
+.menu-option{
+  width:100%;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  padding:
+    14px
+    0;
+
+  background:transparent;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  text-align:left;
+}
+
+.menu-option:last-child{
+  border-bottom:0;
+}
+
+.menu-option > span:first-child{
+  width:40px;
+  height:40px;
+
+  border-radius:13px;
+
+  background:var(--pink-soft);
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+}
+
+.menu-option div{
+  flex:1;
+}
+
+.menu-option div b{
+  display:block;
+}
+
+.menu-option small{
+  color:var(--muted);
+  font-size:11px;
+}
+
+.data-button{
+  margin-top:12px;
+}
+
+.checkbox-row{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  padding:
+    14px 0;
+}
+
+.toggle{
+  width:48px;
+  height:28px;
+
+  border-radius:99px;
+
+  background:#DDDDE5;
+
+  padding:4px;
+}
+
+.toggle.on{
+  background:var(--pink);
+}
+
+.toggle i{
+  display:block;
+
+  width:20px;
+  height:20px;
+
+  background:#fff;
+
+  border-radius:50%;
+
+  transition:.2s;
+}
+
+.toggle.on i{
+  transform:
+    translateX(20px);
+}
+
+.danger-zone{
+  border:
+    1px solid
+    #FECACA;
+
+  background:#FFF7F7;
+}
+
+.app-footer{
+  text-align:center;
+
+  padding:15px;
+
+  color:var(--muted);
+
+  font-size:12px;
+
+  line-height:1.5;
+}
+
+/* =========================================================
+   CALCULADORA
+========================================================= */
+
+.calculator-tabs{
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:4px;
+
+  background:#F0EFF2;
+
+  padding:4px;
+
+  border-radius:14px;
+
+  margin-bottom:15px;
+}
+
+.calculator-tabs button{
+  border-radius:11px;
+
+  padding:10px;
+
+  background:transparent;
+
+  color:var(--muted);
+
+  font-weight:800;
+}
+
+.calculator-tabs button.active{
+  background:#fff;
+
+  color:var(--pink);
+
+  box-shadow:
+    0 1px 3px
+    #0000000d;
 }
 
 .calculator-result{
   background:#FFF8F9;
+
   border-radius:18px;
+
   padding:18px;
 }
 
-.calculator-result .row{
+.result-row{
   margin-top:10px;
 }
 
 .calculator-result hr{
   border:0;
-  border-top:1px solid var(--border);
-  margin:14px 0;
+
+  border-top:
+    1px solid
+    var(--border);
+
+  margin:
+    14px 0;
 }
 
 .calculator-profit{
   font-size:23px;
 }
 
-.calculator-per{
+.result-per{
   text-align:right;
+
   margin-top:6px;
 }
 
-.red-text{
-  color:var(--red);
-}
-
-.goal-card{
+.goal-calculation{
   margin-top:14px;
+
   background:#FFF0F3;
+
+  border-radius:18px;
+
+  padding:18px;
 }
 
-.goal-card p{
+.goal-calculation p{
   color:var(--pink);
+
   font-weight:800;
 }
 
-.distribution-grid{
-  margin-top:14px;
-}
-
-.distribution-total{
-  font-size:28px;
-  font-weight:900;
-  margin:8px 0;
-}
-
-.distribution-row{
-  margin-top:9px;
-}
-
-.distribution-progress{
-  margin-top:15px;
-
-
-/* ==========================================================
-   CALCULADORA BÁSICA
-========================================================== */
+/* Calculadora básica */
 
 .calc-display{
   background:#F8F7F9;
+
   border-radius:18px;
+
   padding:15px;
+
   min-height:82px;
+
   text-align:right;
+
   margin-bottom:12px;
-  overflow:hidden;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:flex-end;
 }
 
 .calc-display .value{
+  width:100%;
+
   font-size:40px;
+
   font-weight:900;
+
   line-height:1.05;
+
   overflow:hidden;
+
+  text-overflow:ellipsis;
+
   white-space:nowrap;
 }
 
 .keys{
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+
+  grid-template-columns:
+    repeat(4,minmax(0,1fr));
+
   gap:8px;
 }
 
 .key{
+  width:100%;
+
   height:56px;
+
   border-radius:16px;
+
   background:#fff;
-  border:1px solid var(--border);
+
+  border:
+    1px solid
+    var(--border);
+
   font-size:20px;
+
   font-weight:900;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
 }
 
 .key.op{
@@ -634,198 +1115,213 @@ button{
   color:#fff;
 }
 
-
-/* ==========================================================
-   EMPTY
-========================================================== */
-
-.empty{
-  text-align:center;
-  padding:30px 15px;
-  color:var(--muted);
+.key.zero{
+  grid-column:
+    span 2;
 }
 
-.welcome-card{
-  text-align:center;
+.key.blank{
+  visibility:hidden;
+  pointer-events:none;
 }
 
-.welcome-icon{
-  font-size:34px;
-  margin-bottom:5px;
-}
+/* =========================================================
+   DISTRIBUCIÓN
+========================================================= */
 
-.home-actions{
+.distribution-summary{
   margin-top:14px;
 }
 
-.home-actions .secondary{
-  margin-top:10px;
+.distribution-total{
+  font-size:28px;
+
+  font-weight:900;
+
+  margin:
+    8px 0;
 }
 
-
-/* ==========================================================
-   AJUSTES
-========================================================== */
-
-.settings-first{
-  margin-top:14px;
+.distribution-row{
+  margin-top:9px;
 }
 
-.checkbox-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 0;
-}
-
-.toggle{
-  width:48px;
-  height:28px;
-  border-radius:99px;
-  background:#DDDDE5;
-  padding:4px;
-}
-
-.toggle.on{
-  background:var(--pink);
-}
-
-.toggle i{
-  display:block;
-  width:20px;
-  height:20px;
-  background:#fff;
-  border-radius:50%;
-  transition:.2s;
-}
-
-.toggle.on i{
-  transform:translateX(20px);
-}
-
-.danger-zone{
-  border:1px solid #FECACA;
-  background:#FFF7F7;
-}
-
-.app-version{
-  text-align:center;
-  padding:15px;
-  color:var(--muted);
-  font-size:12px;
-}
-
-
-/* ==========================================================
+/* =========================================================
    MODAL
-========================================================== */
+========================================================= */
 
 .modal-backdrop{
   position:fixed;
+
   inset:0;
+
   background:#00000073;
+
   z-index:100;
+
   display:flex;
+
   align-items:flex-end;
+
   justify-content:center;
 }
 
 .modal-sheet{
   width:100%;
-  max-width:600px;
+
+  max-width:430px;
+
   max-height:92dvh;
+
   overflow:auto;
+
   background:#fff;
-  border-radius:24px 24px 0 0;
-  padding:0 20px 30px;
+
+  border-radius:
+    24px
+    24px
+    0
+    0;
+
+  padding:
+    0
+    20px
+    30px;
 }
 
 .modal-top{
   height:58px;
+
   display:flex;
+
   align-items:center;
   justify-content:space-between;
 }
 
 .modal-close{
-  background:#F0EFF2;
-  border-radius:12px;
   width:34px;
   height:34px;
+
+  background:#F0EFF2;
+
+  border-radius:12px;
+
   font-size:20px;
 }
 
-.install-step{
-  background:#F8F7F9;
-  border-radius:14px;
-  padding:14px;
-  margin:9px 0;
-}
-
-.install-text{
+.modal-text{
   color:var(--muted);
+
+  line-height:1.5;
 }
 
-
-/* ==========================================================
+/* =========================================================
    TOAST
-========================================================== */
+========================================================= */
 
 .toast{
   position:fixed;
+
   top:24px;
   left:50%;
-  transform:translateX(-50%);
+
+  transform:
+    translateX(-50%);
+
   z-index:300;
-  padding:12px 20px;
+
+  max-width:
+    calc(100vw - 30px);
+
+  padding:
+    12px
+    20px;
+
   border-radius:99px;
+
   background:var(--text);
+
   color:#fff;
+
   font-weight:800;
-  box-shadow:0 4px 20px #0003;
+
+  box-shadow:
+    0 4px 20px
+    #0003;
+
+  text-align:center;
 }
 
-
-/* ==========================================================
-   INTRO
-========================================================== */
+/* =========================================================
+   INTRO VIDEO
+========================================================= */
 
 .splash{
   position:fixed;
+
   inset:0;
+
+  width:100vw;
+  height:100dvh;
+
+  min-height:100dvh;
+
   background:#000;
+
   z-index:9999;
+
   display:flex;
+
   align-items:center;
   justify-content:center;
-  opacity:1;
-}
 
-.splash-hide{
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .4s ease;
+  overflow:hidden;
 }
 
 .splash video{
+  position:absolute;
+
+  inset:0;
+
   width:100%;
   height:100%;
+
+  min-width:100%;
+  min-height:100%;
+
   object-fit:cover;
+
+  object-position:center;
+
+  display:block;
+
+  background:#000;
 }
 
 .splash-fallback{
   display:none;
+
   position:absolute;
+
+  inset:0;
+
   color:#fff;
+
   align-items:center;
+  justify-content:center;
+
   flex-direction:column;
+
   gap:8px;
-  text-align:center;
+
+  z-index:3;
 }
 
 .splash-fallback img{
   width:100px;
   height:100px;
+
+  object-fit:contain;
 }
 
 .splash-fallback strong{
@@ -834,82 +1330,142 @@ button{
 
 .splash-fallback span{
   color:#ff758f;
+
   font-weight:800;
 }
 
 .intro-sound{
   display:none;
+
   position:absolute;
+
   left:50%;
-  bottom:42px;
-  transform:translateX(-50%);
-  z-index:2;
+  bottom:
+    max(
+      42px,
+      env(safe-area-inset-bottom)
+    );
+
+  transform:
+    translateX(-50%);
+
+  z-index:5;
+
   border:0;
+
   border-radius:999px;
-  padding:13px 20px;
+
+  padding:
+    13px
+    20px;
+
   background:#fff;
+
   color:#171720;
+
   font-family:inherit;
+
   font-size:14px;
+
   font-weight:900;
-  box-shadow:0 6px 24px #0005;
+
+  box-shadow:
+    0 6px 24px
+    #0005;
 }
 
 .intro-sound.show{
   display:block;
 }
 
+/* =========================================================
+   MÓVIL
+========================================================= */
 
-/* ==========================================================
-   PWA / BOTÓN INSTALAR
-========================================================== */
-
-.install-app{
-  position:fixed;
-  right:18px;
-  bottom:92px;
-  z-index:80;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  background:var(--pink);
-  color:#fff;
-  padding:13px 17px;
-  border-radius:999px;
-  font-weight:900;
-  box-shadow:0 6px 20px #ff758f66;
-}
-
-
-/* ==========================================================
-   ESCRITORIO
-========================================================== */
-
-@media (min-width:700px){
+@media(max-width:699px){
 
   body{
-    background:#E9E9EF;
+    background:var(--bg);
   }
 
   .app-shell{
-    max-width:none;
     width:100%;
-    height:100dvh;
-    min-height:100dvh;
-    margin:0;
+    max-width:430px;
+
+    margin:0 auto;
+
     border-radius:0;
+
     box-shadow:none;
   }
 
-  .screen-content{
-    width:min(1100px,100%);
+}
+
+/* =========================================================
+   COMPUTADORA
+========================================================= */
+
+@media(min-width:700px){
+
+  html,
+  body{
+    background:#E5E5EB;
+  }
+
+  body{
+    padding:16px;
+
+    min-height:100dvh;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+  }
+
+  #root{
+    width:100%;
+    height:100%;
+  }
+
+  .app-shell{
+
+    width:100%;
+
+    max-width:1200px;
+
+    height:
+      calc(100dvh - 32px);
+
+    min-height:
+      calc(100dvh - 32px);
+
     margin:0 auto;
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    box-shadow:
+      0 20px 60px
+      #00000020;
+  }
+
+  .screen-content{
+    width:100%;
+
+    max-width:1120px;
+
+    margin:0 auto;
+
     padding-bottom:100px;
   }
 
   .header{
-    padding:40px 32px 20px;
+    padding:
+      36px
+      40px
+      20px;
   }
 
   .header h1{
@@ -921,64 +1477,43 @@ button{
   }
 
   .px{
-    padding-left:32px;
-    padding-right:32px;
+    padding-left:40px;
+    padding-right:40px;
   }
 
   .grid2{
-    grid-template-columns:repeat(2,1fr);
     gap:16px;
   }
 
   .card{
-    border-radius:22px;
-    padding:24px;
+    border-radius:20px;
+    margin-bottom:16px;
   }
-
-  .stat-value{
-    font-size:28px;
-  }
-
-  .stat-big{
-    font-size:32px;
-  }
-
-  /*
-    En escritorio la navegación ya no queda
-    flotando como si fuera un teléfono.
-  */
 
   .bottom-nav{
-    position:fixed;
-    left:50%;
-    transform:translateX(-50%);
-    bottom:20px;
-    width:min(700px,calc(100% - 40px));
-    height:70px;
-    border:1px solid var(--border);
-    border-radius:22px;
-    box-shadow:0 10px 35px #00000018;
-    padding:0;
+    height:78px;
+
+    border-radius:
+      0
+      0
+      24px
+      24px;
+
+    padding-left:100px;
+    padding-right:100px;
+  }
+
+  .nav-item{
+    font-size:12px;
+  }
+
+  .nav-icon{
+    font-size:22px;
   }
 
   .fab{
-    margin-top:-16px;
-  }
-
-  .recent-item{
-    margin-left:0;
-    margin-right:0;
-    border-radius:0;
-  }
-
-  .home-actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-  }
-
-  .home-actions .secondary{
-    margin-top:0;
+    width:58px;
+    height:58px;
   }
 
   .modal-backdrop{
@@ -986,75 +1521,43 @@ button{
   }
 
   .modal-sheet{
-    border-radius:24px;
     max-width:520px;
+
+    border-radius:24px;
+
+    padding-bottom:24px;
   }
 
-  .install-app{
-    right:30px;
-    bottom:105px;
+  .install-card{
+    max-width:none;
   }
 
 }
 
+/* =========================================================
+   PANTALLAS MUY GRANDES
+========================================================= */
 
-/* ==========================================================
-   ESCRITORIO GRANDE
-========================================================== */
-
-@media (min-width:1100px){
+@media(min-width:1200px){
 
   .screen-content{
-    width:1100px;
-  }
-
-  .header{
-    padding-left:0;
-    padding-right:0;
-  }
-
-  .px{
-    padding-left:0;
-    padding-right:0;
-  }
-
-  .screen-content{
-    padding-bottom:120px;
+    max-width:1120px;
   }
 
 }
 
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
 
-/* ==========================================================
-   MÓVIL
-========================================================== */
-
-@media (max-width:699px){
-
-  body{
-    background:var(--bg);
-  }
-
-  .app-shell{
-    max-width:430px;
-    box-shadow:none;
-  }
-
-}
-
-
-/* ==========================================================
-   REDUCE MOTION
-========================================================== */
-
-@media (prefers-reduced-motion:reduce){
+@media(prefers-reduced-motion:reduce){
 
   *,
   *::before,
   *::after{
-    scroll-behavior:auto!important;
-    transition:none!important;
-    animation:none!important;
+    scroll-behavior:auto !important;
+    transition:none !important;
+    animation:none !important;
   }
 
 }
