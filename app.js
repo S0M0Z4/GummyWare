@@ -8,12 +8,54 @@ const INITIAL = {
   },
 
   inventory: [
-    {id:"bolsitas",name:"Bolsitas",quantity:0,unit:"unidades",avgCost:0,lowThreshold:20},
-    {id:"gomitas",name:"Gomitas",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
-    {id:"gusanos",name:"Gusanos",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
-    {id:"panditas",name:"Panditas",quantity:0,unit:"kg",avgCost:0,lowThreshold:.5},
-    {id:"chamoy",name:"Chamoy",quantity:0,unit:"ml",avgCost:0,lowThreshold:100},
-    {id:"miguelito",name:"Miguelito",quantity:0,unit:"g",avgCost:0,lowThreshold:50}
+    {
+      id: "bolsitas",
+      name: "Bolsitas",
+      quantity: 0,
+      unit: "unidades",
+      avgCost: 0,
+      lowThreshold: 20
+    },
+    {
+      id: "gomitas",
+      name: "Gomitas",
+      quantity: 0,
+      unit: "kg",
+      avgCost: 0,
+      lowThreshold: 0.5
+    },
+    {
+      id: "gusanos",
+      name: "Gusanos",
+      quantity: 0,
+      unit: "kg",
+      avgCost: 0,
+      lowThreshold: 0.5
+    },
+    {
+      id: "panditas",
+      name: "Panditas",
+      quantity: 0,
+      unit: "kg",
+      avgCost: 0,
+      lowThreshold: 0.5
+    },
+    {
+      id: "chamoy",
+      name: "Chamoy",
+      quantity: 0,
+      unit: "ml",
+      avgCost: 0,
+      lowThreshold: 100
+    },
+    {
+      id: "miguelito",
+      name: "Miguelito",
+      quantity: 0,
+      unit: "g",
+      avgCost: 0,
+      lowThreshold: 50
+    }
   ],
 
   sales: [],
@@ -21,101 +63,179 @@ const INITIAL = {
   transactions: []
 };
 
+function cloneInitial() {
+  return JSON.parse(JSON.stringify(INITIAL));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem("gummyware_v1");
+
+    if (!raw) {
+      return cloneInitial();
+    }
+
+    const old = JSON.parse(raw);
+    const base = cloneInitial();
+
+    return {
+      ...base,
+      ...old,
+
+      settings: {
+        ...base.settings,
+        ...(old.settings || {})
+      },
+
+      inventory: Array.isArray(old.inventory)
+        ? old.inventory
+        : base.inventory,
+
+      sales: Array.isArray(old.sales)
+        ? old.sales
+        : [],
+
+      purchases: Array.isArray(old.purchases)
+        ? old.purchases
+        : [],
+
+      transactions: Array.isArray(old.transactions)
+        ? old.transactions
+        : []
+    };
+
+  } catch {
+    return cloneInitial();
+  }
+}
+
 let state = load();
 let screen = "home";
 
 const root = document.querySelector("#root");
 
 const fmt = n =>
-  "$" + (Number(n) || 0).toLocaleString("es-MX", {
+  "$" +
+  (Number(n) || 0).toLocaleString("es-MX", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
   });
 
-const qty = (n,u) =>
-  `${Number(n)%1===0 ? Number(n) : Number(n).toFixed(2)} ${u}`;
+const qty = (n, u) =>
+  `${Number(n) % 1 === 0 ? Number(n) : Number(n).toFixed(2)} ${u}`;
 
 const uid = () =>
-  Date.now().toString(36) + Math.random().toString(36).slice(2);
+  Date.now().toString(36) +
+  Math.random().toString(36).slice(2);
 
-function load(){
-  try{
-    const x = localStorage.getItem("gummyware_v1");
-    return x ? JSON.parse(x) : structuredClone(INITIAL);
-  }catch{
-    return structuredClone(INITIAL);
-  }
-}
-
-function save(){
+function save() {
   localStorage.setItem("gummyware_v1", JSON.stringify(state));
 }
 
-function stats(){
-  const sales = state.sales.reduce((a,x)=>a + Number(x.total || 0),0);
-  const purchases = state.purchases.reduce((a,x)=>a + Number(x.cost || 0),0);
-  const profit = state.sales.reduce((a,x)=>a + Number(x.profit || 0),0);
+function stats() {
+  const sales = state.sales.reduce(
+    (a, x) => a + (Number(x.total) || 0),
+    0
+  );
+
+  const purchases = state.purchases.reduce(
+    (a, x) => a + (Number(x.cost) || 0),
+    0
+  );
+
+  const profit = state.sales.reduce(
+    (a, x) => a + (Number(x.profit) || 0),
+    0
+  );
 
   return {
-    totalSales:sales,
-    totalPurchases:purchases,
-    totalProfit:profit,
-    availableMoney:sales-purchases,
-    goalProgress:state.settings.profitGoal
-      ? Math.min(profit/state.settings.profitGoal,1)
+    totalSales: sales,
+    totalPurchases: purchases,
+    totalProfit: profit,
+    availableMoney: sales - purchases,
+
+    goalProgress: state.settings.profitGoal
+      ? Math.min(
+          profit / state.settings.profitGoal,
+          1
+        )
       : 0,
+
     restockReserve:
-      state.sales.reduce((a,x)=>a + Number(x.forRestock || 0),0)-purchases
+      state.sales.reduce(
+        (a, x) => a + (Number(x.forRestock) || 0),
+        0
+      ) - purchases
   };
 }
 
-function moneyIcon(type){
-  return type === "sale" ? "↗" : "↙";
-}
-
-
-/* =========================
+/* =========================================================
    NAVEGACIÓN
-========================= */
+========================================================= */
 
-function nav(){
-
+function nav() {
   return `
-  <nav class="bottom-nav">
+    <nav class="bottom-nav">
 
-    <button class="nav-item ${screen==="home"?"active":""}"
-      onclick="go('home')">
-      <span class="nav-symbol">⌂</span>
-      <span>Inicio</span>
-    </button>
+      <button
+        class="nav-item ${screen === "home" ? "active" : ""}"
+        onclick="go('home')"
+      >
+        <span class="nav-icon">⌂</span>
+        <span>Inicio</span>
+      </button>
 
-    <button class="nav-item ${screen==="history"||screen==="new-sale"?"active":""}"
-      onclick="go('history')">
-      <span class="nav-symbol">↗</span>
-      <span>Ventas</span>
-    </button>
+      <button
+        class="nav-item ${
+          screen === "history" || screen === "new-sale"
+            ? "active"
+            : ""
+        }"
+        onclick="go('history')"
+      >
+        <span class="nav-icon">↗</span>
+        <span>Ventas</span>
+      </button>
 
-    <div class="fab-wrap">
-      <button class="fab" onclick="go('new-sale')">＋</button>
-    </div>
+      <div class="fab-wrap">
+        <button
+          class="fab"
+          onclick="go('new-sale')"
+          aria-label="Nueva venta"
+        >
+          ＋
+        </button>
+      </div>
 
-    <button class="nav-item ${screen==="calculator"?"active":""}"
-      onclick="go('calculator')">
-      <span class="nav-symbol">▣</span>
-      <span>Calc</span>
-    </button>
+      <button
+        class="nav-item ${
+          screen === "calculator"
+            ? "active"
+            : ""
+        }"
+        onclick="go('calculator')"
+      >
+        <span class="nav-icon">▣</span>
+        <span>Calc</span>
+      </button>
 
-    <button class="nav-item ${["settings","distribution","inventory","new-purchase"].includes(screen)?"active":""}"
-      onclick="go('settings')">
-      <span class="nav-symbol">☰</span>
-      <span>Más</span>
-    </button>
+      <button
+        class="nav-item ${
+          ["settings", "distribution"].includes(screen)
+            ? "active"
+            : ""
+        }"
+        onclick="go('settings')"
+      >
+        <span class="nav-icon">☰</span>
+        <span>Más</span>
+      </button>
 
-  </nav>`;
+    </nav>
+  `;
 }
 
-function shell(content){
-
+function shell(content) {
   root.innerHTML = `
     <div class="app-shell">
 
@@ -127,436 +247,831 @@ function shell(content){
 
     </div>
   `;
+
+  updateInstallUI();
 }
 
-function header(t,s,back=false){
-
+function header(title, subtitle, back = false) {
   return `
     <header class="header">
 
-      ${back
-        ? `<button class="ghost back-button" onclick="go('home')">‹ Volver</button>`
-        : ""}
+      ${
+        back
+          ? `
+            <button
+              class="ghost back-button"
+              onclick="go('home')"
+            >
+              ‹ Volver
+            </button>
+          `
+          : ""
+      }
 
-      <h1>${t}</h1>
+      <h1>${title}</h1>
 
-      ${s ? `<p>${s}</p>` : ""}
+      ${
+        subtitle
+          ? `<p>${subtitle}</p>`
+          : ""
+      }
 
     </header>
   `;
 }
 
+/* =========================================================
+   INSTALACIÓN PWA
+========================================================= */
 
-/* =========================
+let deferredInstallPrompt = null;
+
+function isStandalone() {
+  return (
+    window.matchMedia(
+      "(display-mode: standalone)"
+    ).matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function isIOS() {
+  return (
+    /iPad|iPhone|iPod/.test(
+      navigator.userAgent
+    ) ||
+    (
+      navigator.platform === "MacIntel" &&
+      navigator.maxTouchPoints > 1
+    )
+  );
+}
+
+window.addEventListener(
+  "beforeinstallprompt",
+  event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    updateInstallUI();
+  }
+);
+
+window.addEventListener(
+  "appinstalled",
+  () => {
+    deferredInstallPrompt = null;
+    updateInstallUI();
+    toast("GummyWare se instaló correctamente");
+  }
+);
+
+function installCard() {
+  return `
+    <div
+      class="install-card"
+      id="install-card"
+    >
+
+      <div class="install-icon">
+        📲
+      </div>
+
+      <div class="install-content">
+
+        <strong class="install-title">
+          Instalar GummyWare
+        </strong>
+
+        <span class="install-hint">
+          Usa GummyWare como una aplicación.
+        </span>
+
+      </div>
+
+      <button
+        class="install-button"
+        onclick="installApp()"
+      >
+        Instalar
+      </button>
+
+    </div>
+  `;
+}
+
+function updateInstallUI() {
+  const cards =
+    document.querySelectorAll(
+      ".install-card"
+    );
+
+  if (!cards.length) {
+    return;
+  }
+
+  if (isStandalone()) {
+    cards.forEach(card => {
+      card.style.display = "none";
+    });
+
+    return;
+  }
+
+  cards.forEach(card => {
+    card.style.display = "flex";
+
+    const title =
+      card.querySelector(".install-title");
+
+    const hint =
+      card.querySelector(".install-hint");
+
+    const button =
+      card.querySelector(".install-button");
+
+    if (isIOS()) {
+      title.textContent =
+        "Instalar GummyWare";
+
+      hint.textContent =
+        "Añádela a tu pantalla de inicio.";
+
+      button.textContent =
+        "Cómo instalar";
+
+    } else if (deferredInstallPrompt) {
+      title.textContent =
+        "Instalar GummyWare";
+
+      hint.textContent =
+        "Instala la aplicación en tu dispositivo.";
+
+      button.textContent =
+        "Instalar";
+
+    } else {
+      title.textContent =
+        "Instalar GummyWare";
+
+      hint.textContent =
+        "Puedes instalarla desde tu navegador.";
+
+      button.textContent =
+        "Instalar";
+    }
+  });
+}
+
+async function installApp() {
+
+  if (isStandalone()) {
+    toast("GummyWare ya está instalada");
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+
+    try {
+
+      await deferredInstallPrompt.prompt();
+
+      const result =
+        await deferredInstallPrompt.userChoice;
+
+      if (
+        result &&
+        result.outcome === "accepted"
+      ) {
+        toast("Instalando GummyWare...");
+      }
+
+    } catch {
+      toast("No se pudo iniciar la instalación");
+    }
+
+    deferredInstallPrompt = null;
+
+    updateInstallUI();
+
+    return;
+  }
+
+  if (isIOS()) {
+
+    modal(`
+      <h2>Instalar GummyWare</h2>
+
+      <p class="modal-text">
+        En iPhone o iPad, sigue estos pasos:
+      </p>
+
+      <div class="install-steps">
+
+        <div>
+          <b>1.</b>
+          Toca el botón
+          <b>Compartir</b>
+          del navegador.
+        </div>
+
+        <div>
+          <b>2.</b>
+          Busca
+          <b>“Añadir a pantalla de inicio”</b>.
+        </div>
+
+        <div>
+          <b>3.</b>
+          Pulsa
+          <b>“Añadir”</b>.
+        </div>
+
+      </div>
+
+      <button
+        class="primary full"
+        onclick="closeModal()"
+      >
+        Entendido
+      </button>
+    `);
+
+    return;
+  }
+
+  modal(`
+    <h2>Instalar GummyWare</h2>
+
+    <p class="modal-text">
+      Si tu navegador todavía no muestra
+      automáticamente la instalación:
+    </p>
+
+    <div class="install-steps">
+
+      <div>
+        <b>Chrome / Edge:</b>
+        busca el icono de instalación
+        en la barra de direcciones.
+      </div>
+
+      <div>
+        También puedes abrir el menú
+        <b>⋮</b> y buscar
+        <b>“Instalar GummyWare”</b>.
+      </div>
+
+    </div>
+
+    <button
+      class="primary full"
+      onclick="closeModal()"
+    >
+      Entendido
+    </button>
+  `);
+}
+
+/* =========================================================
    INICIO
-========================= */
+========================================================= */
 
-function home(){
+function home() {
 
   const s = stats();
 
   const reached =
-    s.totalProfit >= state.settings.profitGoal &&
+    s.totalProfit >=
+      state.settings.profitGoal &&
     state.settings.profitGoal > 0;
 
   return `
+    ${header(
+      "GummyWare",
+      "Tu antojo, bajo control."
+    )}
 
-  ${header("Gummy Ware","Tu antojo, bajo control.")}
+    <div class="px">
 
-  <div class="px">
+      <div class="card">
 
-    <div class="card">
+        <div class="row">
 
-      <div class="row">
+          <div>
 
-        <div>
-          <div class="stat-label">Meta de ganancia</div>
+            <div class="stat-label">
+              Meta de ganancia
+            </div>
 
-          <div class="stat-big">
-            ${fmt(state.settings.profitGoal)}
+            <div
+              class="big-number"
+            >
+              ${fmt(
+                state.settings.profitGoal
+              )}
+            </div>
+
           </div>
+
+          <button
+            class="secondary"
+            onclick="goalModal()"
+          >
+            Editar
+          </button>
+
         </div>
 
-        <button class="secondary" onclick="goalModal()">
-          Editar
+        ${
+          reached
+            ? `
+              <div class="goal-reached">
+                ¡Meta alcanzada! 🎊
+
+                <br>
+
+                <span>
+                  Ganancia:
+                  ${fmt(s.totalProfit)}
+                </span>
+              </div>
+            `
+            : `
+              <div class="progress-wrap">
+
+                <div class="progress">
+                  <div
+                    style="
+                      width:${s.goalProgress * 100}%
+                    "
+                  ></div>
+                </div>
+
+                <div
+                  class="row small muted progress-info"
+                >
+                  <span>
+                    Ganancia actual
+                  </span>
+
+                  <b>
+                    ${fmt(s.totalProfit)}
+                  </b>
+                </div>
+
+              </div>
+            `
+        }
+
+      </div>
+
+      <div class="grid2">
+
+        <div class="card">
+
+          <div class="stat-label">
+            Ventas
+          </div>
+
+          <div class="stat-value">
+            ${fmt(s.totalSales)}
+          </div>
+
+          <div class="small muted stat-foot">
+            ${state.sales.length}
+            ventas
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="stat-label">
+            Ganancia neta
+          </div>
+
+          <div
+            class="stat-value"
+            style="
+              color:${
+                s.totalProfit < 0
+                  ? "var(--red)"
+                  : "var(--green)"
+              }
+            "
+          >
+            ${fmt(s.totalProfit)}
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="stat-label">
+          Disponible
+        </div>
+
+        <div class="stat-value">
+          ${fmt(s.availableMoney)}
+        </div>
+
+      </div>
+
+      ${
+        state.transactions.length
+          ? `
+            <div class="section-head">
+              <h2>Reciente</h2>
+
+              <button
+                onclick="go('history')"
+              >
+                Ver todo
+              </button>
+            </div>
+
+            ${state.transactions
+              .slice(0, 5)
+              .map(
+                tx => `
+                  <div class="list-item">
+
+                    <div class="list-icon">
+                      ${
+                        tx.type === "sale"
+                          ? "↗"
+                          : "↙"
+                      }
+                    </div>
+
+                    <div
+                      class="list-main"
+                    >
+
+                      <b>
+                        ${tx.description}
+                      </b>
+
+                      <div class="small muted">
+                        ${new Date(
+                          tx.date
+                        ).toLocaleDateString(
+                          "es-MX",
+                          {
+                            day: "numeric",
+                            month: "short"
+                          }
+                        )}
+                      </div>
+
+                    </div>
+
+                    <b
+                      class="${
+                        tx.amount >= 0
+                          ? "amount-positive"
+                          : "amount-negative"
+                      }"
+                    >
+                      ${
+                        tx.amount >= 0
+                          ? "+"
+                          : ""
+                      }${fmt(tx.amount)}
+                    </b>
+
+                  </div>
+                `
+              )
+              .join("")}
+          `
+          : `
+            <div class="card welcome-card">
+
+              <div class="welcome-icon">
+                🍬
+              </div>
+
+              <b>
+                ¡Bienvenida a GummyWare!
+              </b>
+
+              <p class="muted small">
+                Registra tu primera venta
+                o compra para comenzar.
+              </p>
+
+            </div>
+          `
+      }
+
+      <div class="home-actions">
+
+        <button
+          class="primary full"
+          onclick="go('new-sale')"
+        >
+          ＋ Nueva venta
+        </button>
+
+        <button
+          class="secondary full"
+          onclick="go('new-purchase')"
+        >
+          ＋ Nueva compra
         </button>
 
       </div>
 
-      ${
-        reached
-
-        ? `
-          <div class="goal-reached">
-            ¡Meta alcanzada! 🎊
-
-            <br>
-
-            <span>
-              Ganancia: ${fmt(s.totalProfit)}
-            </span>
-          </div>
-        `
-
-        : `
-          <div class="goal-area">
-
-            <div class="progress">
-              <div style="width:${s.goalProgress*100}%"></div>
-            </div>
-
-            <div class="row small muted">
-              <span>Ganancia actual</span>
-              <b>${fmt(s.totalProfit)}</b>
-            </div>
-
-          </div>
-        `
-      }
-
     </div>
+  `;
+}
 
+/* =========================================================
+   NUEVA VENTA
+========================================================= */
 
-    <div class="grid2">
+function newSale() {
+
+  const stockItem =
+    state.inventory.find(
+      x => x.id === "bolsitas"
+    );
+
+  const stock =
+    stockItem?.quantity || 0;
+
+  return `
+    ${header(
+      "Nueva venta",
+      "Registra una venta",
+      true
+    )}
+
+    <div class="px">
 
       <div class="card">
 
-        <div class="stat-label">Ventas</div>
+        <div class="field">
 
-        <div class="stat-value">
-          ${fmt(s.totalSales)}
+          <label>
+            Bolsitas
+          </label>
+
+          <input
+            id="sale-bags"
+            class="input"
+            type="number"
+            min="1"
+            inputmode="decimal"
+            value="20"
+          >
+
         </div>
 
-        <div class="small muted">
-          ${state.sales.length} ventas
+        <div class="field">
+
+          <label>
+            Precio por bolsita
+          </label>
+
+          <input
+            id="sale-price"
+            class="input"
+            type="number"
+            min="0"
+            inputmode="decimal"
+            value="${state.settings.defaultPrice}"
+          >
+
         </div>
 
-      </div>
-
-
-      <div class="card">
-
-        <div class="stat-label">Ganancia neta</div>
-
-        <div
-          class="stat-value"
-          style="color:${s.totalProfit<0?"var(--red)":"var(--green)"}"
-        >
-          ${fmt(s.totalProfit)}
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="stat-label">Disponible</div>
-
-      <div class="stat-value">
-        ${fmt(s.availableMoney)}
-      </div>
-
-    </div>
-
-
-    ${
-      state.transactions.length
-
-      ? `
-
-        <div class="section-head">
-          <h2>Reciente</h2>
-
-          <button onclick="go('history')">
-            Ver todo
-          </button>
-        </div>
-
-        ${state.transactions.slice(0,5).map(tx=>`
-
-          <div class="list-item recent-item">
-
-            <div class="list-icon">
-              ${moneyIcon(tx.type)}
-            </div>
-
-            <div class="transaction-info">
-
-              <b>${tx.description}</b>
-
-              <div class="small muted">
-                ${new Date(tx.date).toLocaleDateString("es-MX",{
-                  day:"numeric",
-                  month:"short"
-                })}
+        ${
+          stock > 0 && stock <= 20
+            ? `
+              <div class="badge warn">
+                ⚠️ Stock bajo
+                (${stock} bolsitas)
               </div>
+            `
+            : stock === 0
+            ? `
+              <div class="badge danger">
+                Sin bolsitas en inventario
+              </div>
+            `
+            : ""
+        }
 
-            </div>
+        <div class="calculation-box">
 
-            <b
-              style="color:${tx.amount>=0?"var(--green)":"var(--red)"}"
-            >
-              ${tx.amount>=0?"+":""}${fmt(tx.amount)}
-            </b>
-
+          <div class="stat-label">
+            Costo de producto
           </div>
 
-        `).join("")}
+          <div
+            id="sale-cost"
+            class="calculation-value"
+          >
+            ${fmt(
+              20 *
+                state.settings.gramsPerBag /
+                1000 *
+                state.settings.defaultCostPerKg
+            )}
+          </div>
 
-      `
-
-      : `
-
-        <div class="card welcome-card">
-
-          <div class="welcome-icon">🍬</div>
-
-          <b>¡Bienvenida a Gummy Ware!</b>
-
-          <p class="muted small">
-            Registra tu primera venta o compra para comenzar.
-          </p>
+          <div class="small muted">
+            Calculado automáticamente
+          </div>
 
         </div>
 
-      `
-    }
+        <div class="sale-summary">
 
+          <div class="stat-label">
+            Resumen
+          </div>
 
-    <div class="home-actions">
+          <div
+            class="row summary-row"
+          >
+            <span>
+              Venta total
+            </span>
+
+            <b id="sale-total">
+              ${fmt(
+                20 *
+                  state.settings.defaultPrice
+              )}
+            </b>
+          </div>
+
+          <div
+            class="row summary-row"
+          >
+            <span>
+              Ganancia estimada
+            </span>
+
+            <b id="sale-profit">
+              $0
+            </b>
+          </div>
+
+        </div>
+
+      </div>
 
       <button
         class="primary full"
-        onclick="go('new-sale')"
+        onclick="saveSale()"
       >
-        ＋ Nueva venta
-      </button>
-
-      <button
-        class="secondary full"
-        onclick="go('new-purchase')"
-      >
-        ＋ Nueva compra
+        Registrar venta
       </button>
 
     </div>
-
-  </div>
   `;
 }
 
+function updateSale() {
 
-/* =========================
-   NUEVA VENTA
-========================= */
+  const bags =
+    Number(
+      document.querySelector(
+        "#sale-bags"
+      )?.value
+    ) || 0;
 
-function newSale(){
+  const price =
+    Number(
+      document.querySelector(
+        "#sale-price"
+      )?.value
+    ) || 0;
 
-  const st =
-    state.inventory.find(x=>x.id==="bolsitas");
-
-  const stock = st?.quantity || 0;
-
-  return `
-
-  ${header("Nueva venta","Registra una venta",true)}
-
-  <div class="px">
-
-    <div class="card">
-
-      <div class="field">
-
-        <label>Bolsitas</label>
-
-        <input
-          id="sale-bags"
-          class="input"
-          type="number"
-          min="1"
-          inputmode="decimal"
-          value="20"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label>Precio por bolsita</label>
-
-        <input
-          id="sale-price"
-          class="input"
-          type="number"
-          min="0"
-          step="0.01"
-          inputmode="decimal"
-          value="${state.settings.defaultPrice}"
-        >
-
-      </div>
-
-
-      ${
-        stock>0 && stock<=20
-
-        ? `
-          <div class="badge warn">
-            ⚠️ Stock bajo (${stock} bolsitas)
-          </div>
-        `
-
-        : stock===0
-
-        ? `
-          <div class="badge danger">
-            Sin bolsitas en inventario
-          </div>
-        `
-
-        : ""
-      }
-
-
-      <div class="sale-cost-box">
-
-        <div class="stat-label">
-          Costo de producto
-        </div>
-
-        <div id="sale-cost" class="sale-cost">
-          ${fmt(
-            20 *
-            state.settings.gramsPerBag /
-            1000 *
-            state.settings.defaultCostPerKg
-          )}
-        </div>
-
-        <div class="small muted">
-          Calculado automáticamente
-        </div>
-
-      </div>
-
-
-      <div class="sale-summary">
-
-        <div class="stat-label">
-          Resumen
-        </div>
-
-        <div class="row summary-row">
-          <span>Venta total</span>
-          <b id="sale-total">
-            ${fmt(20*state.settings.defaultPrice)}
-          </b>
-        </div>
-
-        <div class="row summary-row">
-          <span>Ganancia estimada</span>
-          <b id="sale-profit"></b>
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <button
-      class="primary full"
-      onclick="saveSale()"
-    >
-      Registrar venta
-    </button>
-
-  </div>
-
-  `;
-}
-
-function updateSale(){
-
-  const bagsEl = document.querySelector("#sale-bags");
-  const priceEl = document.querySelector("#sale-price");
-
-  if(!bagsEl || !priceEl) return;
-
-  const b = +bagsEl.value || 0;
-  const p = +priceEl.value || 0;
-
-  const c =
-    b *
+  const cost =
+    bags *
     state.settings.gramsPerBag /
     1000 *
     state.settings.defaultCostPerKg;
 
-  const total = b*p;
-  const profit = total-c;
+  const total =
+    bags * price;
 
-  const totalEl = document.querySelector("#sale-total");
-  const costEl = document.querySelector("#sale-cost");
-  const profitEl = document.querySelector("#sale-profit");
+  const profit =
+    total - cost;
 
-  if(totalEl) totalEl.textContent = fmt(total);
-  if(costEl) costEl.textContent = fmt(c);
-  if(profitEl) profitEl.textContent = fmt(profit);
+  const totalElement =
+    document.querySelector(
+      "#sale-total"
+    );
+
+  const costElement =
+    document.querySelector(
+      "#sale-cost"
+    );
+
+  const profitElement =
+    document.querySelector(
+      "#sale-profit"
+    );
+
+  if (totalElement)
+    totalElement.textContent =
+      fmt(total);
+
+  if (costElement)
+    costElement.textContent =
+      fmt(cost);
+
+  if (profitElement) {
+    profitElement.textContent =
+      fmt(profit);
+
+    profitElement.style.color =
+      profit >= 0
+        ? "var(--green)"
+        : "var(--red)";
+  }
 }
 
-function saveSale(){
+function saveSale() {
 
-  const b =
-    +document.querySelector("#sale-bags").value || 0;
+  const bags =
+    Number(
+      document.querySelector(
+        "#sale-bags"
+      ).value
+    ) || 0;
 
-  const p =
-    +document.querySelector("#sale-price").value || 0;
+  const price =
+    Number(
+      document.querySelector(
+        "#sale-price"
+      ).value
+    ) || 0;
 
-  if(b<=0 || p<=0){
-    return toast("Ingresa la cantidad y el precio");
+  if (bags <= 0 || price <= 0) {
+    toast(
+      "Ingresa la cantidad y el precio"
+    );
+
+    return;
   }
 
-  const c =
-    b *
+  const cost =
+    bags *
     state.settings.gramsPerBag /
     1000 *
     state.settings.defaultCostPerKg;
 
-  const total = b*p;
-  const profit = total-c;
+  const total =
+    bags * price;
+
+  const profit =
+    total - cost;
 
   const sale = {
-    id:uid(),
-    date:new Date().toISOString(),
-    bagsCount:b,
-    pricePerBag:p,
+    id: uid(),
+    date: new Date().toISOString(),
+    bagsCount: bags,
+    pricePerBag: price,
     total,
-    costUsed:c,
+    costUsed: cost,
     profit,
-    forRestock:c,
-    isAutoCalc:true
+    forRestock: cost,
+    isAutoCalc: true
   };
 
   state.sales.unshift(sale);
 
-  const inv =
-    state.inventory.find(x=>x.id==="bolsitas");
+  const inventory =
+    state.inventory.find(
+      x => x.id === "bolsitas"
+    );
 
-  if(inv){
-    inv.quantity =
-      Math.max(0,inv.quantity-b);
+  if (inventory) {
+    inventory.quantity =
+      Math.max(
+        0,
+        inventory.quantity - bags
+      );
   }
 
   state.transactions.unshift({
-    id:uid(),
-    date:sale.date,
-    type:"sale",
+    id: uid(),
+    date: sale.date,
+    type: "sale",
     description:
-      `Venta de ${b} bolsita${b!==1?"s":""}`,
-    amount:total,
-    saleId:sale.id
+      `Venta de ${bags} bolsita${
+        bags !== 1 ? "s" : ""
+      }`,
+    amount: total,
+    saleId: sale.id
   });
 
   save();
@@ -566,168 +1081,202 @@ function saveSale(){
   go("home");
 }
 
-
-/* =========================
+/* =========================================================
    COMPRAS
-========================= */
+========================================================= */
 
-function purchase(){
+function purchase() {
 
   return `
+    ${header(
+      "Nueva compra",
+      "Registra una compra",
+      true
+    )}
 
-  ${header("Nueva compra","Registra una compra",true)}
+    <div class="px">
 
-  <div class="px">
-
-    <div class="card">
-
-      <div class="field">
-
-        <label>Producto</label>
-
-        <select id="p-product" class="input">
-
-          <option>Gomitas</option>
-          <option>Bolsitas</option>
-          <option>Gusanos</option>
-          <option>Panditas</option>
-          <option>Tiburones</option>
-          <option>Chamoy</option>
-          <option>Miguelito</option>
-          <option>Otro</option>
-
-        </select>
-
-      </div>
-
-
-      <div class="grid2">
+      <div class="card">
 
         <div class="field">
 
-          <label>Cantidad</label>
+          <label>
+            Producto
+          </label>
 
-          <input
-            id="p-qty"
+          <select
+            id="p-product"
             class="input"
-            type="number"
-            min="0"
-            value="1"
           >
-
-        </div>
-
-
-        <div class="field">
-
-          <label>Unidad</label>
-
-          <select id="p-unit" class="input">
-
-            <option>kg</option>
-            <option>unidades</option>
-            <option>g</option>
-            <option>ml</option>
-            <option>paquetes</option>
-
+            <option>Gomitas</option>
+            <option>Bolsitas</option>
+            <option>Gusanos</option>
+            <option>Panditas</option>
+            <option>Tiburones</option>
+            <option>Chamoy</option>
+            <option>Miguelito</option>
+            <option>Otro</option>
           </select>
 
         </div>
 
+        <div class="grid2">
+
+          <div class="field">
+
+            <label>
+              Cantidad
+            </label>
+
+            <input
+              id="p-qty"
+              class="input"
+              type="number"
+              value="1"
+            >
+
+          </div>
+
+          <div class="field">
+
+            <label>
+              Unidad
+            </label>
+
+            <select
+              id="p-unit"
+              class="input"
+            >
+              <option>kg</option>
+              <option>unidades</option>
+              <option>g</option>
+              <option>ml</option>
+              <option>paquetes</option>
+            </select>
+
+          </div>
+
+        </div>
+
+        <div class="field">
+
+          <label>
+            Costo total
+          </label>
+
+          <input
+            id="p-cost"
+            class="input"
+            type="number"
+            inputmode="decimal"
+            placeholder="$0"
+          >
+
+        </div>
+
+        <div class="info-box">
+          Esta compra se registra como inventario
+          del negocio. El gasto se refleja
+          en tu dinero disponible.
+        </div>
+
       </div>
 
-
-      <div class="field">
-
-        <label>Costo total</label>
-
-        <input
-          id="p-cost"
-          class="input"
-          type="number"
-          inputmode="decimal"
-          placeholder="$0"
-        >
-
-      </div>
-
-
-      <div class="info-box">
-        Esta compra se registra como inventario del negocio,
-        no como pérdida. El gasto se refleja en tu dinero disponible.
-      </div>
+      <button
+        class="primary full"
+        onclick="savePurchase()"
+      >
+        Guardar compra
+      </button>
 
     </div>
-
-
-    <button
-      class="primary full"
-      onclick="savePurchase()"
-    >
-      Guardar compra
-    </button>
-
-  </div>
-
   `;
 }
 
-function savePurchase(){
+function savePurchase() {
 
   const product =
-    document.querySelector("#p-product").value;
+    document.querySelector(
+      "#p-product"
+    ).value;
 
-  const q =
-    +document.querySelector("#p-qty").value || 0;
+  const quantity =
+    Number(
+      document.querySelector(
+        "#p-qty"
+      ).value
+    ) || 0;
 
   const unit =
-    document.querySelector("#p-unit").value;
+    document.querySelector(
+      "#p-unit"
+    ).value;
 
   const cost =
-    +document.querySelector("#p-cost").value || 0;
+    Number(
+      document.querySelector(
+        "#p-cost"
+      ).value
+    ) || 0;
 
-  if(q<=0 || cost<=0){
-    return toast("Completa todos los campos");
+  if (
+    quantity <= 0 ||
+    cost <= 0
+  ) {
+    toast(
+      "Completa todos los campos"
+    );
+
+    return;
   }
 
-  const p = {
-    id:uid(),
-    date:new Date().toISOString(),
+  const purchase = {
+    id: uid(),
+    date: new Date().toISOString(),
     product,
-    quantity:q,
+    quantity,
     unit,
     cost
   };
 
-  state.purchases.unshift(p);
+  state.purchases.unshift(
+    purchase
+  );
 
   const item =
     state.inventory.find(
-      x=>x.name.toLowerCase()===product.toLowerCase()
+      x =>
+        x.name.toLowerCase() ===
+        product.toLowerCase()
     );
 
-  if(item){
+  if (item) {
 
-    const val =
-      item.quantity*item.avgCost+cost;
+    const totalValue =
+      item.quantity *
+        item.avgCost +
+      cost;
 
-    const itemq =
-      item.quantity+q;
+    const newQuantity =
+      item.quantity + quantity;
 
     item.avgCost =
-      itemq ? val/itemq : 0;
+      newQuantity
+        ? totalValue / newQuantity
+        : 0;
 
-    item.quantity = itemq;
+    item.quantity =
+      newQuantity;
   }
 
   state.transactions.unshift({
-    id:uid(),
-    date:p.date,
-    type:"purchase",
+    id: uid(),
+    date: purchase.date,
+    type: "purchase",
     description:
-      `Compra de ${q} ${unit} de ${product}`,
-    amount:-cost,
-    purchaseId:p.id
+      `Compra de ${quantity} ${unit} de ${product}`,
+    amount: -cost,
+    purchaseId: purchase.id
   });
 
   save();
@@ -737,291 +1286,375 @@ function savePurchase(){
   go("inventory");
 }
 
-
-/* =========================
+/* =========================================================
    INVENTARIO
-========================= */
+========================================================= */
 
-function inventory(){
+function inventory() {
 
   const low =
     state.inventory.filter(
-      i=>i.quantity>0 &&
-      i.quantity<=i.lowThreshold
+      i =>
+        i.quantity > 0 &&
+        i.quantity <=
+          i.lowThreshold
     );
 
   return `
+    ${header(
+      "Inventario",
+      "Tu stock actual"
+    )}
 
-  ${header("Inventario","Tu stock actual")}
+    <div class="px">
 
-  <div class="px">
+      ${
+        low.length
+          ? `
+            <div class="card stock-warning">
 
-    ${
-      low.length
+              <b>
+                Stock bajo
+              </b>
 
-      ? `
-        <div class="card stock-warning">
+              <div class="small">
+                ${low
+                  .map(i => i.name)
+                  .join(", ")}
+                ${
+                  low.length === 1
+                    ? " necesita"
+                    : " necesitan"
+                }
+                reposición.
+              </div>
 
-          <b>Stock bajo</b>
-
-          <div class="small">
-            ${low.map(i=>i.name).join(", ")}
-            ${low.length===1?"necesita":"necesitan"}
-            reposición.
-          </div>
-
-        </div>
-      `
-
-      : ""
-    }
-
-
-    <div class="card inventory-card">
-
-      ${state.inventory.map(i=>`
-
-        <div class="list-item">
-
-          <div class="list-icon">
-            ${i.name==="Bolsitas"?"▣":"🍬"}
-          </div>
-
-          <div class="transaction-info">
-
-            <b>${i.name}</b>
-
-            <div class="small muted">
-              Costo prom:
-              ${fmt(i.avgCost)}/${i.unit}
             </div>
+          `
+          : ""
+      }
 
-          </div>
+      <div
+        class="card inventory-card"
+      >
 
-          <div class="inventory-right">
+        ${state.inventory
+          .map(
+            item => `
+              <div class="list-item">
 
-            <b>${qty(i.quantity,i.unit)}</b>
+                <div class="list-icon">
+                  ${
+                    item.name === "Bolsitas"
+                      ? "▣"
+                      : "🍬"
+                  }
+                </div>
 
-            <br>
+                <div
+                  class="list-main"
+                >
 
-            <span class="badge ${
-              i.quantity===0
-                ?"danger"
-                :i.quantity<=i.lowThreshold
-                ?"warn"
-                :"success"
-            }">
+                  <b>
+                    ${item.name}
+                  </b>
 
-              ${
-                i.quantity===0
-                  ?"Agotado"
-                  :i.quantity<=i.lowThreshold
-                  ?"Stock bajo"
-                  :"Disponible"
-              }
+                  <div class="small muted">
+                    Costo prom:
+                    ${fmt(item.avgCost)}
+                    /${item.unit}
+                  </div>
 
-            </span>
+                </div>
 
-          </div>
+                <div class="inventory-right">
 
-        </div>
+                  <b>
+                    ${qty(
+                      item.quantity,
+                      item.unit
+                    )}
+                  </b>
 
-      `).join("")}
+                  <span
+                    class="badge ${
+                      item.quantity === 0
+                        ? "danger"
+                        : item.quantity <=
+                          item.lowThreshold
+                        ? "warn"
+                        : "success"
+                    }"
+                  >
+                    ${
+                      item.quantity === 0
+                        ? "Agotado"
+                        : item.quantity <=
+                          item.lowThreshold
+                        ? "Stock bajo"
+                        : "Disponible"
+                    }
+                  </span>
+
+                </div>
+
+              </div>
+            `
+          )
+          .join("")}
+
+      </div>
+
+      <button
+        class="primary full"
+        onclick="go('new-purchase')"
+      >
+        ＋ Nueva compra
+      </button>
 
     </div>
-
-
-    <button
-      class="primary full"
-      onclick="go('new-purchase')"
-    >
-      ＋ Nueva compra
-    </button>
-
-  </div>
-
   `;
 }
 
-
-/* =========================
+/* =========================================================
    HISTORIAL
-========================= */
+========================================================= */
 
-function history(){
+function history() {
 
   const s = stats();
 
   return `
+    ${header(
+      "Historial",
+      "Todos tus movimientos"
+    )}
 
-  ${header("Historial","Todos tus movimientos")}
+    <div class="px">
 
-  <div class="px">
+      <div class="grid2">
 
-    <div class="grid2">
+        <div class="card">
+          <div class="stat-label">
+            Ventas totales
+          </div>
 
-      <div class="card">
-        <div class="stat-label">Ventas totales</div>
-        <div class="stat-value">${fmt(s.totalSales)}</div>
-        <div class="small muted">${state.sales.length} ventas</div>
-      </div>
+          <div class="stat-value">
+            ${fmt(s.totalSales)}
+          </div>
 
-      <div class="card">
-        <div class="stat-label">Compras totales</div>
-        <div class="stat-value">${fmt(s.totalPurchases)}</div>
-        <div class="small muted">${state.purchases.length} compras</div>
-      </div>
-
-      <div class="card">
-        <div class="stat-label">Ganancia neta</div>
-        <div class="stat-value" style="color:var(--green)">
-          ${fmt(s.totalProfit)}
+          <div class="small muted">
+            ${state.sales.length}
+            ventas
+          </div>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="stat-label">Disponible</div>
-        <div class="stat-value">
-          ${fmt(s.availableMoney)}
+        <div class="card">
+          <div class="stat-label">
+            Compras totales
+          </div>
+
+          <div class="stat-value">
+            ${fmt(s.totalPurchases)}
+          </div>
+
+          <div class="small muted">
+            ${state.purchases.length}
+            compras
+          </div>
         </div>
+
+        <div class="card">
+          <div class="stat-label">
+            Ganancia neta
+          </div>
+
+          <div
+            class="stat-value"
+            style="color:var(--green)"
+          >
+            ${fmt(s.totalProfit)}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="stat-label">
+            Disponible
+          </div>
+
+          <div class="stat-value">
+            ${fmt(s.availableMoney)}
+          </div>
+        </div>
+
       </div>
 
     </div>
 
-  </div>
+    <div class="section-head">
+      <h2>
+        Movimientos
+      </h2>
+    </div>
 
-
-  <div class="section-head">
-    <h2>Movimientos</h2>
-  </div>
-
-
-  <div class="px">
-
-    <div class="card history-card">
+    <div
+      class="card inventory-card"
+    >
 
       ${
         state.transactions.length
+          ? state.transactions
+              .map(
+                tx => `
+                  <div class="list-item">
 
-        ? state.transactions.map(tx=>`
+                    <div class="list-icon">
+                      ${
+                        tx.type === "sale"
+                          ? "↗"
+                          : "↙"
+                      }
+                    </div>
 
-          <div class="list-item">
+                    <div class="list-main">
 
-            <div class="list-icon">
-              ${tx.type==="sale"?"↗":"↙"}
+                      <b>
+                        ${tx.description}
+                      </b>
+
+                      <div class="small muted">
+                        ${new Date(
+                          tx.date
+                        ).toLocaleDateString(
+                          "es-MX",
+                          {
+                            day: "numeric",
+                            month: "short"
+                          }
+                        )}
+                        ·
+                        ${new Date(
+                          tx.date
+                        ).toLocaleTimeString(
+                          "es-MX",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          }
+                        )}
+                      </div>
+
+                    </div>
+
+                    <b
+                      class="${
+                        tx.amount >= 0
+                          ? "amount-positive"
+                          : "amount-negative"
+                      }"
+                    >
+                      ${
+                        tx.amount >= 0
+                          ? "+"
+                          : ""
+                      }${fmt(tx.amount)}
+                    </b>
+
+                  </div>
+                `
+              )
+              .join("")
+          : `
+            <div class="empty">
+              Aún no hay movimientos.
             </div>
-
-            <div class="transaction-info">
-
-              <b>${tx.description}</b>
-
-              <div class="small muted">
-
-                ${new Date(tx.date).toLocaleDateString(
-                  "es-MX",
-                  {
-                    day:"numeric",
-                    month:"short"
-                  }
-                )}
-
-                ·
-
-                ${new Date(tx.date).toLocaleTimeString(
-                  "es-MX",
-                  {
-                    hour:"2-digit",
-                    minute:"2-digit"
-                  }
-                )}
-
-              </div>
-
-            </div>
-
-            <b style="color:${tx.amount>=0?"var(--green)":"var(--red)"}">
-
-              ${tx.amount>=0?"+":""}${fmt(tx.amount)}
-
-            </b>
-
-          </div>
-
-        `).join("")
-
-        : `
-          <div class="empty">
-            Aún no hay movimientos.
-          </div>
-        `
+          `
       }
 
     </div>
-
-  </div>
-
   `;
 }
 
-
-/* =========================
+/* =========================================================
    CALCULADORA
-========================= */
+========================================================= */
 
-function calculator(){
+window.calcMode = "business";
+window.calcDisplay = "0";
+window.calcPrev = null;
+window.calcOp = null;
+window.calcFresh = false;
+
+function calculator() {
 
   return `
+    ${header(
+      "Calculadora",
+      "Estima tus ganancias"
+    )}
 
-  ${header("Calculadora","Estima tus ganancias")}
+    <div class="px">
 
-  <div class="px">
+      <div class="card">
 
-    <div class="card">
+        <div class="calculator-tabs">
 
-      <div class="calc-tabs">
+          <button
+            class="${
+              window.calcMode === "business"
+                ? "active"
+                : ""
+            }"
+            onclick="
+              window.calcMode='business';
+              go('calculator')
+            "
+          >
+            Negocio
+          </button>
 
-        <button
-          class="${window.calcMode!=="basic"?"active":""}"
-          onclick="calcMode='business';go('calculator')"
-        >
-          Negocio
-        </button>
+          <button
+            class="${
+              window.calcMode === "basic"
+                ? "active"
+                : ""
+            }"
+            onclick="
+              window.calcMode='basic';
+              go('calculator')
+            "
+          >
+            Calculadora
+          </button>
 
-        <button
-          class="${window.calcMode==="basic"?"active":""}"
-          onclick="calcMode='basic';go('calculator')"
-        >
-          Calculadora
-        </button>
+        </div>
+
+        ${
+          window.calcMode === "basic"
+            ? basicCalc()
+            : businessCalc()
+        }
 
       </div>
 
-      ${
-        window.calcMode!=="basic"
-          ? businessCalc()
-          : basicCalc()
-      }
-
     </div>
-
-  </div>
-
   `;
 }
 
-function businessCalc(){
+function businessCalc() {
 
   const b =
-    window.calcB ?? 35;
+    window.calcB || 35;
 
   const p =
-    window.calcP ?? state.settings.defaultPrice;
+    window.calcP ||
+    state.settings.defaultPrice;
 
   const c =
     window.calcC ?? "";
 
   const e =
-    window.calcE ?? 0;
+    window.calcE || 0;
 
   const auto =
     b *
@@ -1030,202 +1663,225 @@ function businessCalc(){
     state.settings.defaultCostPerKg;
 
   const cost =
-    c === "" ? auto : +c;
+    c === ""
+      ? auto
+      : Number(c) || 0;
 
   const total =
-    b*p;
+    b * p;
 
   const profit =
-    total-cost-e;
+    total - cost - e;
 
   const per =
-    b ? profit/b : 0;
+    b
+      ? profit / b
+      : 0;
 
   const remain =
     Math.max(
       state.settings.profitGoal -
-      stats().totalProfit,
+        stats().totalProfit,
       0
     );
 
   const need =
-    per>0
-      ? Math.ceil(remain/per)
+    per > 0
+      ? Math.ceil(
+          remain / per
+        )
       : 0;
 
   const days =
-    b
-      ? Math.ceil(need/b)
+    b > 0
+      ? Math.ceil(
+          need / b
+        )
       : 0;
 
   return `
-
     <div class="stat-label">
       Simulación de venta
     </div>
 
-
     <div class="field calculator-field">
 
-      <label>Bolsitas a vender</label>
+      <label>
+        Bolsitas a vender
+      </label>
 
       <input
         class="input"
         type="number"
         value="${b}"
-        oninput="calcB=+this.value;updateBusinessCalc()"
+        oninput="
+          window.calcB=Number(this.value)||0;
+          go('calculator')
+        "
       >
 
     </div>
 
-
     <div class="field">
 
-      <label>Precio por bolsita</label>
+      <label>
+        Precio por bolsita
+      </label>
 
       <input
         class="input"
         type="number"
         value="${p}"
-        oninput="calcP=+this.value;updateBusinessCalc()"
+        oninput="
+          window.calcP=Number(this.value)||0;
+          go('calculator')
+        "
       >
 
     </div>
 
-
     <div class="field">
 
-      <label>Costo del producto</label>
+      <label>
+        Costo del producto
+      </label>
 
       <input
         class="input"
         type="number"
         value="${c}"
         placeholder="Calculado automático"
-        oninput="calcC=this.value;updateBusinessCalc()"
+        oninput="
+          window.calcC=this.value;
+          go('calculator')
+        "
       >
 
     </div>
 
-
     <div class="field">
 
-      <label>Otros costos</label>
+      <label>
+        Otros costos
+      </label>
 
       <input
         class="input"
         type="number"
         value="${e}"
-        oninput="calcE=+this.value;updateBusinessCalc()"
+        oninput="
+          window.calcE=Number(this.value)||0;
+          go('calculator')
+        "
       >
 
     </div>
 
-
     <div class="calculator-result">
 
       <div class="row">
-        <span>Venta total</span>
-        <b>${fmt(total)}</b>
+        <span>
+          Venta total
+        </span>
+
+        <b>
+          ${fmt(total)}
+        </b>
       </div>
 
-      <div class="row">
-        <span>Costo total</span>
-        <b class="red-text">−${fmt(cost+e)}</b>
+      <div class="row result-row">
+        <span>
+          Costo total
+        </span>
+
+        <b class="amount-negative">
+          −${fmt(cost + e)}
+        </b>
       </div>
 
       <hr>
 
       <div class="row">
 
-        <b>Ganancia estimada</b>
+        <b>
+          Ganancia estimada
+        </b>
 
         <b
           class="calculator-profit"
-          style="color:${profit>=0?"var(--green)":"var(--red)"}"
+          style="
+            color:${
+              profit >= 0
+                ? "var(--green)"
+                : "var(--red)"
+            }
+          "
         >
           ${fmt(profit)}
         </b>
 
       </div>
 
-      <div class="small muted calculator-per">
-        ${fmt(per)} por bolsita
+      <div class="small muted result-per">
+        ${fmt(per)}
+        por bolsita
       </div>
 
     </div>
 
-
     ${
-      remain>0 && per>0
+      remain > 0 && per > 0
+        ? `
+          <div class="goal-calculation">
 
-      ? `
-        <div class="card goal-card">
+            <b>
+              ¿Cuánto necesito vender?
+            </b>
 
-          <b>¿Cuánto necesito vender?</b>
+            <p>
+              Necesitas vender aproximadamente
+              <strong>${b}</strong>
+              bolsitas al día durante
+              <strong>${days}</strong>
+              días.
+            </p>
 
-          <p>
-            Necesitas vender aproximadamente
-            <strong>${b}</strong>
-            bolsitas al día durante
-            <strong>${days}</strong>
-            días.
-          </p>
+            <div class="grid2">
 
-          <div class="grid2">
+              <div class="badge neutral">
+                Meta restante<br>
+                ${fmt(remain)}
+              </div>
 
-            <div class="badge neutral">
-              Meta restante<br>
-              ${fmt(remain)}
-            </div>
+              <div class="badge neutral">
+                Bolsitas necesarias<br>
+                ${need}
+              </div>
 
-            <div class="badge neutral">
-              Bolsitas necesarias<br>
-              ${need}
             </div>
 
           </div>
-
-        </div>
-      `
-
-      : ""
+        `
+        : ""
     }
-
   `;
 }
 
-function updateBusinessCalc(){
-
-  const container =
-    document.querySelector(".calculator-field")?.parentElement;
-
-  if(container){
-    /*
-      Se vuelve a dibujar la pantalla para mantener
-      la calculadora sincronizada.
-    */
-    render();
-  }
-}
-
-
-/* =========================
-   CALCULADORA BÁSICA
-========================= */
-
-function basicCalc(){
+function basicCalc() {
 
   const keys = [
-    "C","%","÷",
-    "7","8","9","×",
-    "4","5","6","−",
-    "1","2","3","+",
-    "0",".","="
+    "C", "%", "÷", "×",
+
+    "7", "8", "9", "−",
+
+    "4", "5", "6", "+",
+
+    "1", "2", "3", "=",
+
+    "0", ".", ""
   ];
 
   return `
-
     <div class="calc-display">
 
       <div class="value">
@@ -1234,73 +1890,221 @@ function basicCalc(){
 
     </div>
 
-
     <div class="keys">
 
-      ${keys.map(k=>`
+      ${keys
+        .map(k => {
 
-        <button
-          class="key
-            ${["÷","×","−","+"].includes(k)?"op":""}
-            ${["C","%"].includes(k)?"special":""}
-            ${k==="="?"equal":""}
-          "
-          onclick="calcPress('${k}')"
-        >
-          ${k}
-        </button>
+          if (k === "") {
+            return `
+              <button
+                class="key blank"
+                tabindex="-1"
+                aria-hidden="true"
+              ></button>
+            `;
+          }
 
-      `).join("")}
+          const classes = [
+            "key"
+          ];
+
+          if (
+            ["÷", "×", "−", "+"]
+              .includes(k)
+          ) {
+            classes.push("op");
+          }
+
+          if (
+            ["C", "%"]
+              .includes(k)
+          ) {
+            classes.push("special");
+          }
+
+          if (k === "=") {
+            classes.push("equal");
+          }
+
+          if (k === "0") {
+            classes.push("zero");
+          }
+
+          return `
+            <button
+              class="${classes.join(" ")}"
+              onclick="calcPress('${k}')"
+            >
+              ${k}
+            </button>
+          `;
+        })
+        .join("")}
 
     </div>
-
   `;
 }
 
+function calcPress(k) {
 
-/* =========================
+  if (k === "C") {
+
+    window.calcDisplay = "0";
+    window.calcPrev = null;
+    window.calcOp = null;
+    window.calcFresh = false;
+
+  } else if (k === "%") {
+
+    window.calcDisplay =
+      String(
+        Number(
+          window.calcDisplay
+        ) / 100
+      );
+
+  } else if (
+    ["+", "−", "×", "÷"].includes(k)
+  ) {
+
+    window.calcPrev =
+      Number(
+        window.calcDisplay
+      );
+
+    window.calcOp = k;
+    window.calcFresh = true;
+
+  } else if (k === "=") {
+
+    if (
+      window.calcPrev === null ||
+      !window.calcOp
+    ) {
+      return;
+    }
+
+    const b =
+      Number(
+        window.calcDisplay
+      );
+
+    let result = 0;
+
+    if (
+      window.calcOp === "+"
+    ) {
+      result =
+        window.calcPrev + b;
+
+    } else if (
+      window.calcOp === "−"
+    ) {
+      result =
+        window.calcPrev - b;
+
+    } else if (
+      window.calcOp === "×"
+    ) {
+      result =
+        window.calcPrev * b;
+
+    } else if (
+      window.calcOp === "÷"
+    ) {
+      result =
+        b === 0
+          ? 0
+          : window.calcPrev / b;
+    }
+
+    window.calcDisplay =
+      String(
+        Number(
+          result.toFixed(8)
+        )
+      );
+
+    window.calcPrev = null;
+    window.calcOp = null;
+
+  } else if (k === ".") {
+
+    if (
+      !window.calcDisplay.includes(".")
+    ) {
+      window.calcDisplay += ".";
+    }
+
+  } else {
+
+    window.calcDisplay =
+      window.calcFresh
+        ? k
+        : window.calcDisplay === "0"
+        ? k
+        : window.calcDisplay + k;
+
+    window.calcFresh = false;
+  }
+
+  go("calculator");
+}
+
+/* =========================================================
    DISTRIBUCIÓN
-========================= */
+========================================================= */
 
-function distribution(){
+function distribution() {
 
-  const last = state.sales[0];
+  const last =
+    state.sales[0];
 
-  if(!last){
+  if (!last) {
 
     return `
-
-      ${header("Distribución","Divide tu dinero")}
+      ${header(
+        "Distribución",
+        "Divide tu dinero"
+      )}
 
       <div class="px">
 
         <div class="card empty">
-
           📊
 
           <br>
 
-          <b>Sin ventas aún</b>
+          <b>
+            Sin ventas aún
+          </b>
 
           <p>
-            Registra tu primera venta para
-            ver la distribución.
+            Registra tu primera venta
+            para ver la distribución.
           </p>
 
         </div>
 
       </div>
-
     `;
   }
 
-  const total = last.total;
-  const rest = last.forRestock;
-  const profit = last.profit;
+  const total =
+    Number(last.total) || 0;
+
+  const rest =
+    Number(last.forRestock) || 0;
+
+  const profit =
+    Number(last.profit) || 0;
 
   return `
-
-    ${header("Distribución","Divide tu dinero")}
+    ${header(
+      "Distribución",
+      "Divide tu dinero"
+    )}
 
     <div class="px">
 
@@ -1310,22 +2114,33 @@ function distribution(){
           Resumen acumulado
         </div>
 
-        <div class="grid2 distribution-grid">
+        <div
+          class="grid2 distribution-summary"
+        >
 
           <div>
-            <div class="small muted">Ventas</div>
-            <b>${fmt(stats().totalSales)}</b>
+            <div class="small muted">
+              Ventas
+            </div>
+
+            <b>
+              ${fmt(stats().totalSales)}
+            </b>
           </div>
 
           <div>
-            <div class="small muted">Ganancia</div>
-            <b>${fmt(stats().totalProfit)}</b>
+            <div class="small muted">
+              Ganancia
+            </div>
+
+            <b>
+              ${fmt(stats().totalProfit)}
+            </b>
           </div>
 
         </div>
 
       </div>
-
 
       <div class="card">
 
@@ -1338,221 +2153,290 @@ function distribution(){
         </div>
 
         <div class="row">
-          <span>Para reponer</span>
-          <b>${fmt(rest)}</b>
+          <span>
+            Para reponer
+          </span>
+
+          <b>
+            ${fmt(rest)}
+          </b>
         </div>
 
         <div class="row distribution-row">
-          <span>Ganancia</span>
-          <b style="color:var(--green)">
+          <span>
+            Ganancia
+          </span>
+
+          <b class="amount-positive">
             ${fmt(profit)}
           </b>
         </div>
 
-        <div class="progress distribution-progress">
-
+        <div
+          class="progress"
+          style="margin-top:15px"
+        >
           <div
-            style="width:${total?rest/total*100:0}%"
+            style="
+              width:${
+                total
+                  ? rest / total * 100
+                  : 0
+              }%
+            "
           ></div>
-
         </div>
 
       </div>
 
-
       <div class="card small muted">
-
         La app calcula automáticamente
         reposición y ganancia.
-
       </div>
 
     </div>
-
   `;
 }
 
+/* =========================================================
+   AJUSTES / MÁS
+========================================================= */
 
-/* =========================
-   AJUSTES
-========================= */
-
-function settings(){
+function settings() {
 
   return `
+    ${header(
+      "Más",
+      "Configura GummyWare"
+    )}
 
-  ${header("Ajustes","Configura tu negocio")}
+    <div class="px">
 
-  <div class="px">
+      ${installCard()}
 
-    <div class="card">
+      <div class="card">
 
-      <div class="stat-label">
-        Configuración financiera
-      </div>
+        <div class="stat-label">
+          Configuración financiera
+        </div>
 
+        <div class="field settings-field">
 
-      <div class="field settings-first">
+          <label>
+            Meta de ganancia
+          </label>
 
-        <label>Meta de ganancia</label>
+          <input
+            id="set-goal"
+            class="input"
+            type="number"
+            value="${state.settings.profitGoal}"
+          >
 
-        <input
-          id="set-goal"
-          class="input"
-          type="number"
-          value="${state.settings.profitGoal}"
-        >
+        </div>
 
-      </div>
+        <div class="field">
 
+          <label>
+            Precio por bolsita
+          </label>
 
-      <div class="field">
+          <input
+            id="set-price"
+            class="input"
+            type="number"
+            value="${state.settings.defaultPrice}"
+          >
 
-        <label>Precio por bolsita</label>
+        </div>
 
-        <input
-          id="set-price"
-          class="input"
-          type="number"
-          value="${state.settings.defaultPrice}"
-        >
+        <div class="field">
 
-      </div>
+          <label>
+            Costo por Kg
+          </label>
 
+          <input
+            id="set-cost"
+            class="input"
+            type="number"
+            value="${state.settings.defaultCostPerKg}"
+          >
 
-      <div class="field">
+        </div>
 
-        <label>Costo por Kg</label>
+        <div class="field">
 
-        <input
-          id="set-cost"
-          class="input"
-          type="number"
-          value="${state.settings.defaultCostPerKg}"
-        >
+          <label>
+            Gramos por bolsita
+          </label>
 
-      </div>
+          <input
+            id="set-grams"
+            class="input"
+            type="number"
+            value="${state.settings.gramsPerBag}"
+          >
 
+        </div>
 
-      <div class="field">
+        <div class="checkbox-row">
 
-        <label>Gramos por bolsita</label>
+          <b>
+            Cálculo automático
+          </b>
 
-        <input
-          id="set-grams"
-          class="input"
-          type="number"
-          value="${state.settings.gramsPerBag}"
-        >
+          <button
+            class="toggle ${
+              state.settings.autoCalculation
+                ? "on"
+                : ""
+            }"
+            onclick="
+              state.settings.autoCalculation =
+                !state.settings.autoCalculation;
+              save();
+              go('settings')
+            "
+          >
+            <i></i>
+          </button>
 
-      </div>
-
-
-      <div class="checkbox-row">
-
-        <b>Cálculo automático</b>
+        </div>
 
         <button
-          class="toggle ${state.settings.autoCalculation?"on":""}"
-          onclick="
-            state.settings.autoCalculation=!state.settings.autoCalculation;
-            save();
-            go('settings')
-          "
+          class="primary full"
+          onclick="saveSettings()"
         >
-          <i></i>
+          Guardar cambios
         </button>
 
       </div>
 
+      <div class="card">
 
-      <button
-        class="primary full"
-        onclick="saveSettings()"
-      >
-        Guardar cambios
-      </button>
+        <div class="stat-label">
+          Secciones
+        </div>
 
-    </div>
+        <button
+          class="menu-option"
+          onclick="go('inventory')"
+        >
+          <span>📦</span>
+          <div>
+            <b>Inventario</b>
+            <small>
+              Consulta tu stock
+            </small>
+          </div>
+          <span>›</span>
+        </button>
 
+        <button
+          class="menu-option"
+          onclick="go('distribution')"
+        >
+          <span>📊</span>
+          <div>
+            <b>Distribución</b>
+            <small>
+              Reposición y ganancias
+            </small>
+          </div>
+          <span>›</span>
+        </button>
 
-    <div class="card">
-
-      <div class="stat-label">
-        Datos
       </div>
 
-      <button
-        class="secondary full"
-        style="margin-top:12px"
-        onclick="exportData()"
-      >
-        Exportar datos
-      </button>
+      <div class="card">
 
-      <label
-        class="secondary full"
-        style="margin-top:10px"
-      >
+        <div class="stat-label">
+          Datos
+        </div>
 
-        <input
-          type="file"
-          accept=".json"
-          hidden
-          onchange="importData(event)"
+        <button
+          class="secondary full data-button"
+          onclick="exportData()"
         >
+          Exportar datos
+        </button>
 
-        Importar datos
+        <label
+          class="secondary full data-button"
+        >
+          <input
+            type="file"
+            accept=".json"
+            hidden
+            onchange="importData(event)"
+          >
+          Importar datos
+        </label>
 
-      </label>
+      </div>
+
+      <div class="card danger-zone">
+
+        <b>
+          Zona de peligro
+        </b>
+
+        <p class="small muted">
+          Borra todas las ventas,
+          compras e inventario.
+        </p>
+
+        <button
+          class="danger full"
+          onclick="resetData()"
+        >
+          Restablecer datos
+        </button>
+
+      </div>
+
+      <div class="app-footer">
+        🍬 GummyWare
+        <br>
+        Compila tu Antojo
+        <br>
+        v2.0.0
+      </div>
 
     </div>
-
-
-    <div class="card danger-zone">
-
-      <b>Zona de peligro</b>
-
-      <p class="small muted">
-        Borra todas las ventas, compras e inventario.
-      </p>
-
-      <button
-        class="danger full"
-        onclick="resetData()"
-      >
-        Restablecer datos
-      </button>
-
-    </div>
-
-
-    <div class="app-version">
-
-      🍬 Gummy Ware<br>
-      Compila tu Antojo<br>
-      v1.1.0 • Datos guardados localmente
-
-    </div>
-
-  </div>
-
   `;
 }
 
-function saveSettings(){
+function saveSettings() {
 
   state.settings.profitGoal =
-    +document.querySelector("#set-goal").value || 0;
+    Number(
+      document.querySelector(
+        "#set-goal"
+      ).value
+    ) || 0;
 
   state.settings.defaultPrice =
-    +document.querySelector("#set-price").value || 0;
+    Number(
+      document.querySelector(
+        "#set-price"
+      ).value
+    ) || 0;
 
   state.settings.defaultCostPerKg =
-    +document.querySelector("#set-cost").value || 0;
+    Number(
+      document.querySelector(
+        "#set-cost"
+      ).value
+    ) || 0;
 
   state.settings.gramsPerBag =
-    +document.querySelector("#set-grams").value || 0;
+    Number(
+      document.querySelector(
+        "#set-grams"
+      ).value
+    ) || 0;
 
   save();
 
@@ -1561,20 +2445,18 @@ function saveSettings(){
   go("settings");
 }
 
-
-/* =========================
-   MODALES
-========================= */
-
-function goalModal(){
+function goalModal() {
 
   modal(`
-
-    <h2>¿Cuánto quieres ganar?</h2>
+    <h2>
+      ¿Cuánto quieres ganar?
+    </h2>
 
     <div class="field">
 
-      <label>Meta de ganancia</label>
+      <label>
+        Meta de ganancia
+      </label>
 
       <input
         id="goal-modal"
@@ -1588,33 +2470,44 @@ function goalModal(){
     <button
       class="primary full"
       onclick="
-        state.settings.profitGoal=
-        +document.querySelector('#goal-modal').value||0;
+        state.settings.profitGoal =
+          Number(
+            document.querySelector(
+              '#goal-modal'
+            ).value
+          ) || 0;
+
         save();
         closeModal();
-        go('home')
+        go('home');
       "
     >
       Guardar meta
     </button>
-
   `);
 }
 
-function modal(body){
+/* =========================================================
+   MODALES
+========================================================= */
 
-  const d = document.createElement("div");
+function modal(body) {
+
+  const d =
+    document.createElement("div");
 
   d.id = "modal";
-  d.className = "modal-backdrop";
+  d.className =
+    "modal-backdrop";
 
   d.innerHTML = `
-
     <div class="modal-sheet">
 
       <div class="modal-top">
 
-        <b>GummyWare</b>
+        <b>
+          GummyWare
+        </b>
 
         <button
           class="modal-close"
@@ -1628,106 +2521,151 @@ function modal(body){
       ${body}
 
     </div>
-
   `;
 
   document.body.appendChild(d);
 }
 
-function closeModal(){
-
-  document.querySelector("#modal")?.remove();
+function closeModal() {
+  document
+    .querySelector("#modal")
+    ?.remove();
 }
 
-function toast(msg){
+/* =========================================================
+   MENSAJES
+========================================================= */
 
-  const d = document.createElement("div");
+function toast(message) {
+
+  const d =
+    document.createElement("div");
 
   d.className = "toast";
-  d.textContent = msg;
+  d.textContent = message;
 
   document.body.appendChild(d);
 
-  setTimeout(()=>d.remove(),2400);
+  setTimeout(
+    () => d.remove(),
+    2400
+  );
 }
 
+/* =========================================================
+   EXPORTAR / IMPORTAR
+========================================================= */
 
-/* =========================
-   DATOS
-========================= */
+function exportData() {
 
-function exportData(){
+  const blob =
+    new Blob(
+      [
+        JSON.stringify(
+          state,
+          null,
+          2
+        )
+      ],
+      {
+        type: "application/json"
+      }
+    );
 
-  const blob = new Blob(
-    [JSON.stringify(state,null,2)],
-    {type:"application/json"}
-  );
+  const a =
+    document.createElement("a");
 
-  const a = document.createElement("a");
+  a.href =
+    URL.createObjectURL(blob);
 
-  a.href = URL.createObjectURL(blob);
-  a.download = "gummyware-backup.json";
+  a.download =
+    "gummyware-backup.json";
 
   a.click();
 
-  URL.revokeObjectURL(a.href);
+  URL.revokeObjectURL(
+    a.href
+  );
 }
 
-function importData(e){
+function importData(event) {
 
-  const f = e.target.files[0];
+  const file =
+    event.target.files[0];
 
-  if(!f) return;
+  if (!file) return;
 
-  const r = new FileReader();
+  const reader =
+    new FileReader();
 
-  r.onload = ()=>{
+  reader.onload = () => {
 
-    try{
+    try {
 
-      state = JSON.parse(r.result);
+      const imported =
+        JSON.parse(
+          reader.result
+        );
+
+      if (
+        !imported ||
+        typeof imported !==
+          "object"
+      ) {
+        throw new Error();
+      }
+
+      state = {
+        ...cloneInitial(),
+        ...imported,
+        settings: {
+          ...cloneInitial().settings,
+          ...(imported.settings || {})
+        }
+      };
 
       save();
 
       go("settings");
 
-      toast("Datos importados");
+      toast(
+        "Datos importados"
+      );
 
-    }catch{
+    } catch {
 
-      toast("Archivo inválido");
-
+      toast(
+        "Archivo inválido"
+      );
     }
-
   };
 
-  r.readAsText(f);
+  reader.readAsText(file);
 }
 
-function resetData(){
+function resetData() {
 
-  if(
+  if (
     confirm(
       "Esta acción no se puede deshacer. ¿Restablecer GummyWare?"
     )
-  ){
+  ) {
 
-    state = structuredClone(INITIAL);
+    state =
+      cloneInitial();
 
     save();
 
     go("home");
-
   }
 }
 
+/* =========================================================
+   NAVEGACIÓN GLOBAL
+========================================================= */
 
-/* =========================
-   VARIABLES GLOBALES
-========================= */
-
-window.go = function(s){
-  screen = s;
+window.go = function(destination) {
+  screen = destination;
   render();
 };
 
@@ -1739,585 +2677,302 @@ window.closeModal = closeModal;
 window.resetData = resetData;
 window.exportData = exportData;
 window.importData = importData;
-
-window.calcMode = "business";
-window.calcDisplay = "0";
-window.calcPrev = null;
-window.calcOp = null;
-window.calcFresh = false;
-
-window.calcB = 35;
-window.calcP = state.settings.defaultPrice;
-window.calcC = "";
-window.calcE = 0;
-
-
-/* =========================
-   CALCULADORA
-========================= */
-
-function calcPress(k){
-
-  if(k==="C"){
-
-    calcDisplay="0";
-    calcPrev=null;
-    calcOp=null;
-    calcFresh=false;
-
-  }
-
-  else if(k==="%"){
-
-    calcDisplay =
-      String(+calcDisplay/100);
-
-  }
-
-  else if(["+","−","×","÷"].includes(k)){
-
-    calcPrev=+calcDisplay;
-    calcOp=k;
-    calcFresh=true;
-
-  }
-
-  else if(k==="="){
-
-    if(calcPrev==null || !calcOp){
-      return;
-    }
-
-    const b = +calcDisplay;
-
-    let r =
-      calcOp==="+" ? calcPrev+b :
-      calcOp==="−" ? calcPrev-b :
-      calcOp==="×" ? calcPrev*b :
-      b ? calcPrev/b : 0;
-
-    calcDisplay =
-      String(Number(r.toFixed(8)));
-
-    calcPrev=null;
-    calcOp=null;
-
-  }
-
-  else if(k==="."){
-
-    if(!calcDisplay.includes(".")){
-      calcDisplay += ".";
-    }
-
-  }
-
-  else{
-
-    calcDisplay =
-      calcFresh
-        ? k
-        : calcDisplay==="0"
-        ? k
-        : calcDisplay+k;
-
-    calcFresh=false;
-  }
-
-  go("calculator");
-}
-
+window.installApp = installApp;
 window.calcPress = calcPress;
 
-
-/* =========================
+/* =========================================================
    RENDER
-========================= */
+========================================================= */
 
-function render(){
+function render() {
 
-  let c =
-    screen==="home"
-      ? home()
-      : screen==="new-sale"
-      ? newSale()
-      : screen==="new-purchase"
-      ? purchase()
-      : screen==="inventory"
-      ? inventory()
-      : screen==="history"
-      ? history()
-      : screen==="calculator"
-      ? calculator()
-      : screen==="distribution"
-      ? distribution()
-      : settings();
+  let content;
 
-  shell(c);
+  switch (screen) {
 
-  if(screen==="new-sale"){
+    case "home":
+      content = home();
+      break;
+
+    case "new-sale":
+      content = newSale();
+      break;
+
+    case "new-purchase":
+      content = purchase();
+      break;
+
+    case "inventory":
+      content = inventory();
+      break;
+
+    case "history":
+      content = history();
+      break;
+
+    case "calculator":
+      content = calculator();
+      break;
+
+    case "distribution":
+      content = distribution();
+      break;
+
+    case "settings":
+      content = settings();
+      break;
+
+    default:
+      content = home();
+  }
+
+  shell(content);
+
+  if (
+    screen === "new-sale"
+  ) {
 
     const bags =
-      document.querySelector("#sale-bags");
+      document.querySelector(
+        "#sale-bags"
+      );
 
     const price =
-      document.querySelector("#sale-price");
+      document.querySelector(
+        "#sale-price"
+      );
 
-    if(bags) bags.addEventListener("input",updateSale);
-    if(price) price.addEventListener("input",updateSale);
+    if (bags)
+      bags.addEventListener(
+        "input",
+        updateSale
+      );
+
+    if (price)
+      price.addEventListener(
+        "input",
+        updateSale
+      );
 
     updateSale();
   }
 }
 
-render();
+/* =========================================================
+   INTRO VIDEO
+========================================================= */
 
-
-/* ==========================================================
-   INTRO / VIDEO
-========================================================== */
-
-function startIntro(){
+function startIntro() {
 
   const splash =
-    document.querySelector("#splash");
+    document.querySelector(
+      "#splash"
+    );
 
-  const v =
-    document.querySelector("#intro-video");
+  const video =
+    document.querySelector(
+      "#intro-video"
+    );
 
-  const soundBtn =
-    document.querySelector("#intro-sound");
+  const soundButton =
+    document.querySelector(
+      "#intro-sound"
+    );
 
-  if(!splash || !v){
+  const fallback =
+    document.querySelector(
+      ".splash-fallback"
+    );
+
+  if (
+    !splash ||
+    !video
+  ) {
     return;
   }
 
+  video.autoplay = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.controls = false;
+  video.volume = 1;
 
   const mobile =
-    window.matchMedia("(max-width:699px)").matches ||
+    window.matchMedia(
+      "(max-width: 699px)"
+    ).matches ||
     /Android|iPhone|iPad|iPod|Mobile/i.test(
       navigator.userAgent
     );
 
+  const sources = mobile
+    ? [
+        "./assets/intro-mobile.mp4",
+        "./videos/intro-mobile.mp4",
+        "./assets/intro.mp4",
+        "./videos/intro.mp4"
+      ]
+    : [
+        "./assets/intro-desktop.mp4",
+        "./videos/intro-desktop.mp4",
+        "./assets/intro.mp4",
+        "./videos/intro.mp4"
+      ];
 
-  /*
-    IMPORTANTE:
+  let sourceIndex = 0;
+  let finished = false;
 
-    Los archivos deben estar exactamente aquí:
+  function finish() {
 
-    assets/intro-mobile.mp4
-    assets/intro-desktop.mp4
-  */
+    if (finished) return;
 
-  const videoPath =
-    mobile
-      ? "./assets/intro-mobile.mp4"
-      : "./assets/intro-desktop.mp4";
+    finished = true;
 
-  v.src = videoPath;
+    splash.style.transition =
+      "opacity .35s ease";
 
-  v.setAttribute("playsinline","");
-  v.setAttribute("webkit-playsinline","");
+    splash.style.opacity = "0";
 
-  /*
-    Primero intentamos sonido.
-    Si el navegador lo bloquea, mostramos
-    el botón para que el usuario lo active.
-  */
+    setTimeout(() => {
 
-  v.muted = false;
-  v.volume = 1;
-
-  let done = false;
-
-  function finish(){
-
-    if(done) return;
-
-    done = true;
-
-    splash.classList.add("splash-hide");
-
-    setTimeout(()=>{
       splash.remove();
-    },400);
+
+    }, 350);
   }
 
+  function showFallback() {
 
-  function showSoundButton(){
-
-    if(!soundBtn || done) return;
-
-    soundBtn.classList.add("show");
-  }
-
-
-  function hideSoundButton(){
-
-    if(!soundBtn) return;
-
-    soundBtn.classList.remove("show");
-  }
-
-
-  function playVideo(){
-
-    v.muted = false;
-    v.volume = 1;
-
-    const promise = v.play();
-
-    if(promise){
-
-      promise
-        .then(()=>{
-          hideSoundButton();
-        })
-        .catch(()=>{
-
-          /*
-            Algunos navegadores bloquean autoplay
-            con sonido.
-          */
-
-          v.muted = true;
-
-          const mutedPlay = v.play();
-
-          if(mutedPlay){
-
-            mutedPlay
-              .then(()=>{
-                showSoundButton();
-              })
-              .catch(()=>{
-                showSoundButton();
-              });
-
-          }else{
-
-            showSoundButton();
-
-          }
-
-        });
-
+    if (fallback) {
+      fallback.style.display =
+        "flex";
     }
 
-  }
-
-
-  if(soundBtn){
-
-    soundBtn.addEventListener("click",()=>{
-
-      v.muted = false;
-      v.volume = 1;
-
-      const promise = v.play();
-
-      if(promise){
-
-        promise
-          .then(()=>{
-            hideSoundButton();
-          })
-          .catch(()=>{
-            showSoundButton();
-          });
-
-      }
-
-    });
-
-  }
-
-
-  v.addEventListener(
-    "ended",
-    finish,
-    {once:true}
-  );
-
-
-  v.addEventListener(
-    "error",
-    ()=>{
-
-      /*
-        Si el MP4 no existe, mostramos
-        la pantalla alternativa y continuamos.
-      */
-
-      const fallback =
-        document.querySelector(".splash-fallback");
-
-      if(fallback){
-        fallback.style.display = "flex";
-      }
-
-      if(soundBtn){
-        soundBtn.classList.remove("show");
-      }
-
-      setTimeout(finish,1800);
-
-    },
-    {once:true}
-  );
-
-
-  /*
-    Seguridad:
-    si el video tarda demasiado en cargar,
-    no dejamos la app bloqueada.
-  */
-
-  setTimeout(()=>{
-
-    if(!done && v.readyState === 0){
-
-      const fallback =
-        document.querySelector(".splash-fallback");
-
-      if(fallback){
-        fallback.style.display="flex";
-      }
-
-      setTimeout(finish,1200);
-
-    }
-
-  },8000);
-
-
-  playVideo();
-}
-
-
-/* ==========================================================
-   INSTALACIÓN PWA
-========================================================== */
-
-let deferredInstallPrompt = null;
-
-
-function setupPWAInstall(){
-
-  const installButton =
-    document.querySelector("#install-app");
-
-  /*
-    Android / Chrome / Edge
-  */
-
-  window.addEventListener(
-    "beforeinstallprompt",
-    e=>{
-
-      e.preventDefault();
-
-      deferredInstallPrompt = e;
-
-      if(installButton){
-
-        installButton.style.display = "flex";
-
-      }
-
-    }
-  );
-
-
-  /*
-    Usuario instala la aplicación
-  */
-
-  window.addEventListener(
-    "appinstalled",
-    ()=>{
-
-      deferredInstallPrompt = null;
-
-      if(installButton){
-        installButton.style.display = "none";
-      }
-
-      toast("GummyWare instalada correctamente 🍬");
-
-    }
-  );
-
-
-  /*
-    iPhone / iPad
-  */
-
-  const isIOS =
-    /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  const isStandalone =
-    window.navigator.standalone === true ||
-    window.matchMedia(
-      "(display-mode: standalone)"
-    ).matches;
-
-
-  if(
-    isIOS &&
-    !isStandalone &&
-    installButton
-  ){
-
-    installButton.style.display = "flex";
-
-    installButton.textContent =
-      "📲 Cómo instalar GummyWare";
-
-  }
-
-
-  /*
-    Botón de instalación
-  */
-
-  if(installButton){
-
-    installButton.addEventListener(
-      "click",
-      async ()=>{
-
-        /*
-          Android / Chrome / Edge
-        */
-
-        if(deferredInstallPrompt){
-
-          deferredInstallPrompt.prompt();
-
-          const choice =
-            await deferredInstallPrompt.userChoice;
-
-          if(choice.outcome==="accepted"){
-            toast("Instalando GummyWare...");
-          }
-
-          deferredInstallPrompt = null;
-
-          installButton.style.display="none";
-
-          return;
-        }
-
-
-        /*
-          iPhone / iPad
-        */
-
-        if(isIOS){
-
-          modal(`
-
-            <h2>Instalar GummyWare 📲</h2>
-
-            <p class="install-text">
-
-              En tu iPhone o iPad:
-
-            </p>
-
-            <div class="install-step">
-              <b>1.</b>
-              Toca el botón
-              <b>Compartir</b>
-              de Safari.
-            </div>
-
-            <div class="install-step">
-              <b>2.</b>
-              Busca
-              <b>“Agregar a pantalla de inicio”</b>.
-            </div>
-
-            <div class="install-step">
-              <b>3.</b>
-              Toca
-              <b>Agregar</b>.
-            </div>
-
-            <button
-              class="primary full"
-              onclick="closeModal()"
-            >
-              Entendido
-            </button>
-
-          `);
-
-          return;
-        }
-
-
-        toast(
-          "Para instalarla, usa el menú de tu navegador."
-        );
-
-      }
+    soundButton?.classList.remove(
+      "show"
     );
 
+    setTimeout(
+      finish,
+      1600
+    );
   }
 
+  function loadNextSource() {
+
+    if (
+      sourceIndex >=
+      sources.length
+    ) {
+      showFallback();
+      return;
+    }
+
+    video.src =
+      sources[sourceIndex];
+
+    sourceIndex++;
+
+    video.load();
+
+    const playAttempt =
+      video.play();
+
+    if (
+      playAttempt &&
+      typeof playAttempt.catch ===
+        "function"
+    ) {
+      playAttempt.catch(() => {
+        soundButton?.classList.add(
+          "show"
+        );
+      });
+    }
+  }
+
+  video.addEventListener(
+    "error",
+    () => {
+      loadNextSource();
+    }
+  );
+
+  video.addEventListener(
+    "ended",
+    finish,
+    { once: true }
+  );
+
+  soundButton?.addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        video.muted = false;
+        video.volume = 1;
+
+        await video.play();
+
+        soundButton.classList.remove(
+          "show"
+        );
+
+      } catch {
+
+        video.muted = true;
+
+        soundButton.classList.add(
+          "show"
+        );
+      }
+    }
+  );
+
+  loadNextSource();
 
   /*
-    Si ya está instalada como PWA,
-    ocultamos el botón.
+    Si por algún motivo el video no carga,
+    nunca dejamos bloqueada la aplicación.
   */
+  setTimeout(() => {
 
-  if(isStandalone && installButton){
+    if (
+      !finished &&
+      video.readyState === 0
+    ) {
+      showFallback();
+    }
 
-    installButton.style.display = "none";
-
-  }
-
+  }, 15000);
 }
 
-
-/* ==========================================================
+/* =========================================================
    SERVICE WORKER
-========================================================== */
+========================================================= */
 
-if("serviceWorker" in navigator){
+if (
+  "serviceWorker" in navigator
+) {
 
   window.addEventListener(
     "load",
-    ()=>{
+    () => {
 
       navigator.serviceWorker
         .register("./sw.js")
-        .catch(err=>{
-          console.warn(
-            "Service Worker:",
-            err
-          );
-        });
+        .then(registration => {
+          registration.update();
+        })
+        .catch(() => {});
 
     }
   );
-
 }
 
+/* =========================================================
+   ARRANQUE
+========================================================= */
 
-/* ==========================================================
-   INICIAR
-========================================================== */
-
-window.addEventListener(
-  "DOMContentLoaded",
-  ()=>{
-
-    startIntro();
-
-    setupPWAInstall();
-
-  }
-);
+render();
+startIntro();
