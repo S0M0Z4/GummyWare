@@ -1,120 +1,67 @@
 <!doctype html>
 <html lang="es">
-
 <head>
-
   <meta charset="UTF-8">
 
   <meta
     name="viewport"
-    content="width=device-width,initial-scale=1,viewport-fit=cover"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
-  <meta
-    name="theme-color"
-    content="#FF758F"
-  >
+  <meta name="theme-color" content="#FF758F">
+  <meta name="description" content="GummyWare — Compila tu Antojo">
 
-  <meta
-    name="description"
-    content="GummyWare — Compila tu Antojo"
-  >
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
 
-  <meta
-    name="mobile-web-app-capable"
-    content="yes"
-  >
+  <!-- Iconos -->
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
 
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
+  <!-- iPhone/iPad -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GummyWare">
 
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="default"
-  >
-
-  <meta
-    name="apple-mobile-web-app-title"
-    content="GummyWare"
-  >
-
-  <link
-    rel="manifest"
-    href="./manifest.json"
-  >
-
-  <link
-    rel="icon"
-    href="./icons/icon-192.png"
-  >
-
-  <link
-    rel="apple-touch-icon"
-    href="./icons/icon-192.png"
-  >
-
-  <link
-    rel="stylesheet"
-    href="./style.css"
-  >
+  <link rel="stylesheet" href="./style.css">
 
   <title>GummyWare</title>
-
 </head>
 
 <body>
 
+  <!-- PANTALLA DE INTRO -->
   <div id="splash" class="splash">
 
     <video
       id="intro-video"
       autoplay
+      muted
       playsinline
-      webkit-playsinline
       preload="auto"
+      disablepictureinpicture
     ></video>
 
     <button
       id="intro-sound"
       class="intro-sound"
       type="button"
-      aria-label="Iniciar video con sonido"
+      aria-label="Activar sonido"
     >
-      🔊 Tocar para iniciar con sonido
+      🔊 Activar sonido
     </button>
 
     <div class="splash-fallback">
-
-      <img
-        src="./icons/icon-512.png"
-        alt="GummyWare"
-      >
-
+      <img src="./icons/icon-512.png" alt="GummyWare">
       <strong>GummyWare</strong>
-
       <span>Compila tu Antojo</span>
-
     </div>
 
   </div>
 
-
   <div id="root"></div>
-
-
-  <button
-    id="install-app"
-    class="install-app"
-    type="button"
-  >
-    📲 Instalar GummyWare
-  </button>
-
 
   <script src="./app.js"></script>
 
 </body>
-
 </html>
