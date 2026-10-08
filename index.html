@@ -1,45 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#FF758F">
-  <meta name="description" content="GummyWare — Compila tu Antojo">
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-  <title>GummyWare</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FF758F">
+<meta name="description" content="GummyWare — Compila tu Antojo">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<title>GummyWare</title>
 </head>
 <body>
-  <div id="splash" class="splash">
-    <video id="splashVideo" class="splash-video" autoplay muted playsinline></video>
-    <div id="splashFallback" class="splash-fallback">
-      <div class="splash-logo">Gummy<span>Ware</span></div>
-      <p>Compila tu Antojo</p>
-    </div>
+<div id="splash" class="splash">
+  <video id="intro-video" autoplay muted playsinline></video>
+  <div class="splash-fallback">
+    <img src="icons/icon-512.png" alt="GummyWare">
+    <strong>GummyWare</strong><span>Compila tu Antojo</span>
   </div>
-
-  <div id="app" class="app hidden">
-    <main id="screen" class="screen"></main>
-
-    <nav class="bottom-nav">
-      <button class="nav-item active" data-screen="home">
-        <span>⌂</span><small>Inicio</small>
-      </button>
-      <button class="nav-item" data-screen="sale">
-        <span>＋</span><small>Venta</small>
-      </button>
-      <button class="nav-item" data-screen="inventory">
-        <span>▣</span><small>Inventario</small>
-      </button>
-      <button class="nav-item" data-screen="history">
-        <span>◷</span><small>Historial</small>
-      </button>
-      <button class="nav-item" data-screen="settings">
-        <span>⚙</span><small>Ajustes</small>
-      </button>
-    </nav>
-  </div>
-
-  <script src="app.js"></script>
+</div>
+<div id="root"></div>
+<script src="app.js"></script>
 </body>
 </html>
